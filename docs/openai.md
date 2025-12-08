@@ -1,0 +1,3 @@
+OpenAI Declares ‘Code Red’ as Google Threatens AI Lead
+
+Altman sent memo yesterday code red. Delaying everything ads agents health shopping Pulse. All resources fixing ChatGPT. Gemini 3 and Claude beating GPT-5. Benioff ditched ChatGPT for Gemini month after $100M OpenAI deal. Three years ago Google panicked over ChatGPT now reversed. Losing billions $157B valuation assumes they're leader. Gemini 650M users ChatGPT 800M gap closing. Ilya said age of scaling over. Yann LeCun agrees. Bleeding top people. $1.4T commitments need growth. Existential not just competitive. What do you guys think?
