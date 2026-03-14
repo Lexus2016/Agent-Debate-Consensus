@@ -13,21 +13,21 @@ export function ModelSelector() {
   const removeModel = useChatStore((state) => state.removeModel);
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-[10px] font-semibold text-muted uppercase tracking-widest">
-          Available Agents
+    <div>
+      <div className="flex items-center justify-between px-2 mb-2">
+        <h3 className="text-[11px] font-medium text-muted uppercase tracking-[0.05em]">
+          Agents
         </h3>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="w-6 h-6 flex items-center justify-center rounded-lg bg-primary/20 border border-primary/30 text-primary hover:bg-primary/30 hover:border-primary/50 transition-all duration-200 text-base leading-none font-bold"
+          className="w-5 h-5 flex items-center justify-center rounded-md text-muted/60 hover:text-foreground hover:bg-white/[0.06] transition-colors duration-150 text-[14px] leading-none"
           title="Discover more agents"
         >
           +
         </button>
       </div>
 
-      <div className="space-y-1.5">
+      <div className="space-y-px">
         {availableModels.map((model) => {
           const isActive = activeModels.some((m) => m.id === model.id);
           const isDefault = defaultModels.some((m) => m.id === model.id);
@@ -36,35 +36,25 @@ export function ModelSelector() {
             <div key={model.id} className="group relative">
               <button
                 onClick={() => toggleModel(model.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-200 ${
+                className={`w-full flex items-center gap-2.5 px-2 py-[7px] rounded-lg text-left transition-all duration-150 ${
                   isActive
-                    ? "bg-surface-light border border-primary/20 shadow-sm shadow-primary/5"
-                    : "hover:bg-surface-light/40 border border-transparent"
+                    ? "bg-white/[0.07]"
+                    : "hover:bg-white/[0.04]"
                 }`}
               >
                 <div
-                  className={`w-2.5 h-2.5 rounded-full flex-shrink-0 transition-all duration-200 ${
-                    isActive ? "ring-2 ring-offset-2 ring-offset-surface-dark opacity-100" : "opacity-70"
+                  className={`w-2 h-2 rounded-full flex-shrink-0 transition-all duration-150 ${
+                    isActive ? "opacity-100" : "opacity-40"
                   }`}
-                  style={{
-                    backgroundColor: model.color,
-                    ...(isActive ? { boxShadow: `0 0 8px ${model.color}60` } : {}),
-                  }}
+                  style={{ backgroundColor: model.color }}
                 />
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs font-medium truncate text-foreground/90">{model.name}</div>
-                  <div className="text-[10px] text-muted truncate">@{model.shortName}</div>
+                  <div className="text-[13px] font-normal truncate text-foreground/85 leading-tight">
+                    {model.name}
+                  </div>
                 </div>
                 {isActive && (
-                  <div
-                    className="text-[9px] font-semibold px-1.5 py-0.5 rounded-md uppercase tracking-wide"
-                    style={{
-                      color: model.color,
-                      backgroundColor: `${model.color}18`,
-                    }}
-                  >
-                    Active
-                  </div>
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
                 )}
               </button>
 
@@ -74,8 +64,8 @@ export function ModelSelector() {
                     e.stopPropagation();
                     removeModel(model.id);
                   }}
-                  className="absolute -right-1 -top-1 w-5 h-5 bg-surface-dark border border-border rounded-full flex items-center justify-center text-[10px] text-muted hover:text-foreground hover:border-muted opacity-0 group-hover:opacity-100 transition-all duration-150 z-10"
-                  title="Remove from list"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-md text-[10px] text-muted hover:text-foreground hover:bg-white/[0.08] opacity-0 group-hover:opacity-100 transition-all duration-150"
+                  title="Remove"
                 >
                   ✕
                 </button>

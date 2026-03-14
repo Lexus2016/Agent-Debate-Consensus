@@ -1,28 +1,40 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #09090b;
-  --color-foreground: #f4f4f5;
-  --color-primary: #6366f1;
-  --color-primary-hover: #4f46e5;
-  --color-primary-light: #818cf8;
-  --color-surface: #18181b;
-  --color-surface-light: #27272a;
-  --color-surface-dark: #09090b;
-  --color-muted: #71717a;
-  --color-border: #3f3f46;
-  --color-accent: #8b5cf6;
+  --color-background: #0c0c0c;
+  --color-foreground: #f5f5f7;
+  --color-primary: #bf5af2;
+  --color-primary-hover: #a84ad6;
+  --color-primary-light: #d18ff5;
+  --color-surface: #1c1c1e;
+  --color-surface-light: #2c2c2e;
+  --color-surface-hover: #3a3a3c;
+  --color-surface-dark: #0c0c0c;
+  --color-muted: #98989d;
+  --color-border: #38383a;
+  --color-accent: #0a84ff;
 }
 
 body {
   background: var(--color-background);
   color: var(--color-foreground);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Scrollbar */
+::selection {
+  background: rgba(191, 90, 242, 0.3);
+}
+
+/* macOS-native scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -30,24 +42,27 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border);
-  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: content-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-muted);
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid transparent;
+  background-clip: content-box;
 }
 
-/* Glass morphism utility */
-.glass {
-  background: rgba(24, 24, 27, 0.8);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+/* macOS sidebar vibrancy */
+.vibrancy {
+  background: rgba(28, 28, 30, 0.78);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
 }
 
-/* Gradient text utility */
 .gradient-text {
-  background: linear-gradient(135deg, var(--color-primary-light), var(--color-accent));
+  background: linear-gradient(135deg, var(--color-primary-light), var(--color-primary));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -60,52 +75,32 @@ body {
 }
 
 .animate-blink {
-  animation: blink 1s infinite;
+  animation: blink 1s step-end infinite;
 }
 
 @keyframes bounce-dot {
-  0%, 80%, 100% { transform: translateY(0); }
-  40% { transform: translateY(-4px); }
+  0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+  40% { transform: translateY(-3px); opacity: 1; }
 }
 
-.animate-bounce-dot {
-  animation: bounce-dot 1.4s infinite ease-in-out;
-}
-
-.animate-bounce-dot-delay-1 {
-  animation: bounce-dot 1.4s infinite ease-in-out;
-  animation-delay: 0.16s;
-}
-
-.animate-bounce-dot-delay-2 {
-  animation: bounce-dot 1.4s infinite ease-in-out;
-  animation-delay: 0.32s;
-}
+.animate-bounce-dot { animation: bounce-dot 1.4s infinite ease-in-out; }
+.animate-bounce-dot-delay-1 { animation: bounce-dot 1.4s infinite ease-in-out 0.16s; }
+.animate-bounce-dot-delay-2 { animation: bounce-dot 1.4s infinite ease-in-out 0.32s; }
 
 @keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-fade-in {
-  animation: fade-in 0.3s ease-out forwards;
+  animation: fade-in 0.2s ease-out forwards;
 }
 
-@keyframes pulse-glow {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
-  }
-  50% {
-    box-shadow: 0 0 0 6px rgba(99, 102, 241, 0.15);
-  }
+@keyframes modal-in {
+  from { opacity: 0; transform: scale(0.97) translateY(6px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-.animate-pulse-glow {
-  animation: pulse-glow 2s ease-in-out infinite;
+.animate-modal-in {
+  animation: modal-in 0.2s ease-out forwards;
 }

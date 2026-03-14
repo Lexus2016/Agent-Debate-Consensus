@@ -28,7 +28,6 @@ export function ChatContainer() {
 
   const isGenerating = typingModels.length > 0 || messages.some((m) => m.isStreaming);
 
-  // Stop all generation
   const handleStop = useCallback(() => {
     stopAllStreams();
     conversationEngine.reset();
@@ -40,7 +39,6 @@ export function ChatContainer() {
     });
   }, [typingModels, messages, setTyping, completeMessage]);
 
-  // Handle model response
   const triggerModelResponse = useCallback(
     async (modelId: string) => {
       const state = useChatStore.getState();
@@ -105,12 +103,10 @@ export function ChatContainer() {
     [addMessage, updateMessage, completeMessage, setTyping, contextWindowSize]
   );
 
-  // Set up conversation engine handler
   useEffect(() => {
     conversationEngine.setResponseHandler(triggerModelResponse);
   }, [triggerModelResponse]);
 
-  // Process which models should respond
   const processModelResponses = useCallback(
     (latestMessage: Message) => {
       const state = useChatStore.getState();
@@ -131,7 +127,6 @@ export function ChatContainer() {
     []
   );
 
-  // Handle user message
   const handleSendMessage = useCallback(
     (content: string) => {
       if (activeModels.length === 0) {
@@ -156,38 +151,33 @@ export function ChatContainer() {
 
   return (
     <div className="h-screen flex overflow-hidden">
-      {/* Sidebar */}
-      <div className="w-72 flex-shrink-0 glass border-r border-border/50 flex flex-col">
-        {/* Sidebar Header */}
-        <div className="p-5 border-b border-border/50">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0 shadow-lg">
-              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-sm font-bold gradient-text leading-tight">Agent Debate</h1>
-              <p className="text-[10px] text-muted leading-tight">Consensus</p>
-            </div>
+      {/* macOS-style sidebar */}
+      <div className="w-[260px] flex-shrink-0 vibrancy border-r border-white/[0.06] flex flex-col">
+        {/* App header */}
+        <div className="h-[52px] flex items-center gap-2.5 px-4 border-b border-white/[0.06]">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-primary-hover flex items-center justify-center flex-shrink-0">
+            <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
           </div>
+          <span className="text-[13px] font-semibold tracking-[-0.01em]">Agent Debate</span>
         </div>
 
-        {/* Participants section */}
-        <div className="p-4 border-b border-border/50">
-          <h2 className="text-[10px] font-semibold text-muted uppercase tracking-widest mb-3">
+        {/* Participants */}
+        <div className="px-3 pt-4 pb-2">
+          <h2 className="px-2 text-[11px] font-medium text-muted uppercase tracking-[0.05em] mb-2.5">
             Participants
           </h2>
           <ActiveModels />
         </div>
 
-        {/* Available Agents section */}
-        <div className="flex-1 overflow-y-auto p-4">
+        {/* Agents list */}
+        <div className="flex-1 overflow-y-auto px-3 pt-1">
           <ModelSelector />
         </div>
 
-        {/* Bottom actions */}
-        <div className="p-4 border-t border-border/50 space-y-2">
+        {/* Bottom toolbar */}
+        <div className="px-3 py-3 border-t border-white/[0.06] flex gap-1.5">
           {messages.length > 0 && (
             <button
               onClick={() => {
@@ -195,12 +185,13 @@ export function ChatContainer() {
                 const date = new Date().toISOString().split("T")[0];
                 downloadMarkdown(md, `debate-${date}.md`);
               }}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-medium text-muted hover:text-foreground border border-border/50 hover:border-border rounded-xl transition-all duration-200 hover:bg-surface-light/50 tracking-wide"
+              className="flex-1 flex items-center justify-center gap-1.5 h-[30px] text-[12px] text-muted hover:text-foreground rounded-lg hover:bg-white/[0.05] transition-colors duration-150"
+              title="Export debate as Markdown"
             >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              Export as .md
+              Export
             </button>
           )}
           <button
@@ -208,15 +199,18 @@ export function ChatContainer() {
               clearChat();
               conversationEngine.reset();
             }}
-            className="w-full px-4 py-2.5 text-xs font-medium text-muted hover:text-foreground border border-border/50 hover:border-border rounded-xl transition-all duration-200 hover:bg-surface-light/50 tracking-wide"
+            className="flex-1 flex items-center justify-center gap-1.5 h-[30px] text-[12px] text-muted hover:text-foreground rounded-lg hover:bg-white/[0.05] transition-colors duration-150"
           >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
             New Debate
           </button>
         </div>
       </div>
 
-      {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col bg-background min-w-0">
+      {/* Main chat area */}
+      <div className="flex-1 flex flex-col min-w-0 bg-background">
         <MessageList />
         <ChatInput
           onSend={handleSendMessage}

@@ -63,7 +63,7 @@ export function ModelDiscoveryModal({ isOpen, onClose }: ModelDiscoveryModalProp
     const shortName =
       orModel.name.split(" ")[0].split(":")[0].split("/").pop() || "AI";
 
-    const colors = ["#ef4444", "#22c55e", "#f97316", "#3b82f6", "#a855f7", "#06b6d4"];
+    const colors = ["#ff6482", "#32d583", "#fbbf24", "#60a5fa", "#a78bfa", "#34d399"];
     const randomColor = colors[Math.floor(Math.random() * colors.length)];
 
     const newModel: Model = {
@@ -87,17 +87,14 @@ export function ModelDiscoveryModal({ isOpen, onClose }: ModelDiscoveryModalProp
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="bg-surface border border-border/70 w-full max-w-2xl max-h-[80vh] rounded-2xl shadow-2xl shadow-black/50 flex flex-col overflow-hidden animate-fade-in">
-        {/* Modal header */}
-        <div className="px-5 py-4 border-b border-border/50 flex items-center justify-between">
-          <div>
-            <h2 className="text-base font-bold text-foreground">Discover Agents</h2>
-            <p className="text-xs text-muted mt-0.5">Add AI models to your debate</p>
-          </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm">
+      <div className="bg-surface border border-white/[0.06] w-full max-w-[560px] max-h-[72vh] rounded-2xl shadow-2xl shadow-black/40 flex flex-col overflow-hidden animate-modal-in">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
+          <h2 className="text-[15px] font-semibold tracking-[-0.01em]">Discover Agents</h2>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-muted hover:text-foreground hover:bg-surface-light transition-all duration-200"
+            className="w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-foreground hover:bg-white/[0.06] transition-colors duration-150"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -106,38 +103,27 @@ export function ModelDiscoveryModal({ isOpen, onClose }: ModelDiscoveryModalProp
         </div>
 
         {/* Search */}
-        <div className="px-5 py-3 border-b border-border/50">
-          <div className="relative">
-            <svg
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search agents by name or provider..."
-              className="w-full bg-surface-light border border-border/60 rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/10 text-sm placeholder:text-muted transition-all duration-200"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              autoFocus
-            />
-          </div>
+        <div className="px-5 py-3 border-b border-white/[0.06]">
+          <input
+            type="text"
+            placeholder="Search by name or provider..."
+            className="w-full bg-surface-light rounded-lg border border-white/[0.06] px-3.5 py-2 text-[13px] focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/20 placeholder:text-muted/40 transition-all duration-150"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            autoFocus
+          />
         </div>
 
-        {/* Model list */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
+        {/* List */}
+        <div className="flex-1 overflow-y-auto px-3 py-2 space-y-1">
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-12 text-muted gap-3">
-              <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-              <span className="text-sm">Loading agents from OpenRouter...</span>
+            <div className="flex flex-col items-center justify-center py-16 text-muted/50 gap-3">
+              <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+              <span className="text-[13px]">Loading agents...</span>
             </div>
           ) : filteredModels.length === 0 ? (
-            <div className="flex items-center justify-center py-12 text-muted text-sm">
-              No agents found matching &ldquo;{search}&rdquo;
+            <div className="flex items-center justify-center py-16 text-[13px] text-muted/50">
+              No results for &ldquo;{search}&rdquo;
             </div>
           ) : (
             filteredModels.map((model) => {
@@ -152,37 +138,34 @@ export function ModelDiscoveryModal({ isOpen, onClose }: ModelDiscoveryModalProp
               return (
                 <div
                   key={model.id}
-                  className="bg-surface-light/40 border border-border/40 rounded-xl p-3.5 flex items-center justify-between hover:bg-surface-light/70 hover:border-border/70 transition-all duration-200 group"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/[0.03] transition-colors duration-150"
                 >
-                  <div className="flex-1 min-w-0 pr-4">
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
-                      <h3 className="text-sm font-medium truncate text-foreground/90">
+                      <span className="text-[13px] font-medium truncate text-foreground/85">
                         {model.name}
-                      </h3>
-                      <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-surface-dark border border-border/50 text-muted uppercase tracking-wide flex-shrink-0">
+                      </span>
+                      <span className="text-[10px] px-1.5 py-[1px] rounded bg-white/[0.04] text-muted/50 uppercase tracking-wide flex-shrink-0">
                         {model.id.split("/")[0]}
                       </span>
                     </div>
-                    <p className="text-xs text-muted line-clamp-1 mb-1.5">
-                      {model.description || "No description available"}
-                    </p>
-                    <div className="flex items-center gap-3 text-[10px] text-muted/70 font-mono">
-                      <span>In: ${promptPrice}/1M</span>
-                      <span>Out: ${completionPrice}/1M</span>
-                      <span>Ctx: {(model.context_length / 1024).toFixed(0)}k</span>
+                    <div className="flex items-center gap-3 text-[10px] text-muted/40 font-mono">
+                      <span>${promptPrice}/1M in</span>
+                      <span>${completionPrice}/1M out</span>
+                      <span>{(model.context_length / 1024).toFixed(0)}k ctx</span>
                     </div>
                   </div>
 
                   <button
                     onClick={() => handleAddModel(model)}
                     disabled={isAdded}
-                    className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
+                    className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors duration-150 ${
                       isAdded
-                        ? "bg-surface border border-border/40 text-muted cursor-default"
-                        : "bg-primary hover:bg-primary-hover text-white shadow-sm shadow-primary/20"
+                        ? "text-muted/30 cursor-default"
+                        : "bg-primary/15 text-primary hover:bg-primary/25"
                     }`}
                   >
-                    {isAdded ? "Added" : "Add Agent"}
+                    {isAdded ? "Added" : "Add"}
                   </button>
                 </div>
               );
@@ -191,9 +174,9 @@ export function ModelDiscoveryModal({ isOpen, onClose }: ModelDiscoveryModalProp
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-3 border-t border-border/50 bg-surface-light/20 text-center">
-          <p className="text-[10px] text-muted/60">
-            Powered by OpenRouter API &bull; Pricing is per 1M tokens
+        <div className="px-5 py-2.5 border-t border-white/[0.06] text-center">
+          <p className="text-[10px] text-muted/30">
+            Powered by OpenRouter
           </p>
         </div>
       </div>
