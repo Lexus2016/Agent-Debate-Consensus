@@ -3,15 +3,41 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Agent Debate Consensus — Multi-Agent AI Debate Platform",
+  metadataBase: new URL("https://lryq.com"),
+  title: "Agent Debate — Multi-Agent AI Debate Platform",
   description:
-    "Multi-agent debate platform where AI models discuss, argue, and find consensus on any topic. Powered by OpenRouter.",
+    "Pick 2–5 AI models, pose a question, and watch them argue in real time. Steer the discussion and drive toward consensus. Powered by OpenRouter.",
+  keywords: [
+    "AI debate",
+    "multi-agent AI",
+    "LLM debate",
+    "AI consensus",
+    "OpenRouter",
+    "multi-model chat",
+    "agent debate",
+    "GPT-4 vs Claude",
+    "AI comparison tool",
+  ],
+  robots: {
+    index: true,
+    follow: true,
+  },
   openGraph: {
-    title: "Agent Debate Consensus",
-    description: "Multi-agent AI debate platform — watch AI models discuss, argue, and find consensus",
+    title: "Agent Debate — Multi-Agent AI Debate Platform",
+    description:
+      "Pick 2–5 AI models, pose a question, and watch them argue in real time. Steer the discussion and drive toward consensus.",
     url: "https://lryq.com",
-    siteName: "Agent Debate Consensus",
+    siteName: "Agent Debate",
     type: "website",
+    locale: "en_US",
+    images: [{ url: "/icon-512.png", width: 512, height: 512, alt: "Agent Debate" }],
+  },
+  twitter: {
+    card: "summary",
+    title: "Agent Debate — Multi-Agent AI Debate Platform",
+    description:
+      "Pick 2–5 AI models, pose a question, and watch them argue in real time. Steer the discussion and drive toward consensus.",
+    images: ["/icon-512.png"],
   },
 };
 
