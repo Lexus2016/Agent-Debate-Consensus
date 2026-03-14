@@ -1,4 +1,4 @@
-import { Model, Message } from "@/types/chat";
+import { Model, Message, FileAttachment } from "@/types/chat";
 
 interface ResponseDecision {
   shouldRespond: boolean;
@@ -127,6 +127,18 @@ export class ConversationEngine {
     if (isMentioned) {
       shouldRespond = true;
       priority = 100;
+    }
+
+    // If user's message has directed @mentions, only mentioned models respond
+    if (latestMessage.role === "user" && !isMentioned) {
+      const hasDirectedMention = activeModels.some((m) => {
+        const esc = escapeRegex(m.shortName.toLowerCase());
+        const pat = new RegExp(`@${esc}\\b`, "i");
+        return pat.test(latestMessage.content);
+      });
+      if (hasDirectedMention) {
+        return { shouldRespond: false, delay: 0, priority: 0 };
+      }
     }
 
     // Check cooldown (10 seconds) — but @mentions bypass this
@@ -305,8 +317,24 @@ export function buildSystemPrompt(
       ? `The other AI participants are: ${otherModels.join(", ")}.`
       : "You are the only AI in this chat.";
 
+  const now = new Date();
+  const currentDate = now.toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+  const currentTime = now.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZoneName: "short",
+  });
+  const dateLine = `Current date: ${currentDate}, ${currentTime}.`;
+
   if (isModerator) {
-    return `You are ${model.name}, acting as the MODERATOR of this debate. ${othersText}
+    return `${dateLine}
+
+You are ${model.name}, acting as the MODERATOR of this debate. ${othersText}
 
 Your role as moderator:
 - Guide the discussion — ask clarifying questions, redirect off-topic tangents
@@ -324,7 +352,9 @@ CRITICAL: Your summary CONCLUDES the round. After you summarize, participants wi
 CRITICAL LANGUAGE RULE: You MUST respond in the same language the user used in their message. If the user writes in Ukrainian, respond in Ukrainian. If in English, respond in English. Always match the user's language. This applies to all your responses without exception.`;
   }
 
-  return `You are ${model.name}, participating in a structured debate with a human moderator${otherModels.length > 0 ? " and other AI models" : ""}.
+  return `${dateLine}
+
+You are ${model.name}, participating in a structured debate with a human moderator${otherModels.length > 0 ? " and other AI models" : ""}.
 
 ${othersText}
 
@@ -348,6 +378,17 @@ CRITICAL STOP RULES:
 CRITICAL LANGUAGE RULE: You MUST respond in the same language the user used in their message. If the user writes in Ukrainian, respond in Ukrainian. If in English, respond in English. Always match the user's language. This applies to all your responses without exception.`;
 }
 
+function formatUserContent(
+  text: string,
+  attachment?: FileAttachment
+): string {
+  if (!attachment) return text;
+
+  const fileBlock = `<attached_file name="${attachment.fileName}">\n${attachment.content}\n</attached_file>`;
+
+  return text ? `${text}\n\n${fileBlock}` : fileBlock;
+}
+
 export function buildContextWindow(
   messages: Message[],
   windowSize: number,
@@ -369,16 +410,23 @@ export function buildContextWindow(
 
   // Pin the user's question if it was pushed out of the context window
   if (lastUserIdx >= 0 && lastUserIdx < windowStartIdx) {
+    const pinnedMsg = messages[lastUserIdx];
     result.push({
       role: "user",
-      content: messages[lastUserIdx].content,
+      content: formatUserContent(pinnedMsg.content, pinnedMsg.attachment),
     });
   }
 
   for (const msg of recentMessages) {
+    // Skip system event notifications — not relevant for AI context
+    if (msg.role === "system") continue;
+
     if (msg.role === "user") {
-      // User messages stay as user role
-      result.push({ role: "user", content: msg.content });
+      // User messages stay as user role, with attachment if present
+      result.push({
+        role: "user",
+        content: formatUserContent(msg.content, msg.attachment),
+      });
     } else if (msg.modelId === model.id) {
       // Own previous messages -> assistant role (no prefix)
       result.push({ role: "assistant", content: msg.content });

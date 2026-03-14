@@ -2,10 +2,24 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useChatStore } from "@/store/chatStore";
-import { Model } from "@/types/chat";
+import { Model, FileAttachment } from "@/types/chat";
+
+const MAX_FILE_SIZE = 100 * 1024; // 100 KB
+const ALLOWED_EXTENSIONS = [
+  ".txt", ".md",
+  ".csv", ".json", ".xml",
+  ".html", ".css",
+  ".js", ".ts", ".jsx", ".tsx",
+  ".py", ".rb", ".go", ".rs", ".java", ".kt",
+  ".yaml", ".yml", ".toml", ".ini", ".env",
+  ".sh", ".bash", ".zsh", ".bat", ".cmd", ".ps1",
+  ".sql", ".graphql",
+  ".log", ".conf", ".cfg",
+  ".svg",
+];
 
 interface Props {
-  onSend: (message: string) => void;
+  onSend: (message: string, attachment?: FileAttachment) => void;
   onStop: () => void;
   disabled?: boolean;
   isGenerating?: boolean;
@@ -20,6 +34,10 @@ export function ChatInput({ onSend, onStop, disabled, isGenerating }: Props) {
   const [mentionQuery, setMentionQuery] = useState("");
   const [mentionOpen, setMentionOpen] = useState(false);
   const [mentionIndex, setMentionIndex] = useState(0);
+
+  const [pendingFile, setPendingFile] = useState<FileAttachment | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { activeModels, availableModels, webSearchEnabled, setWebSearch } = useChatStore();
 
@@ -93,10 +111,50 @@ export function ChatInput({ onSend, onStop, disabled, isGenerating }: Props) {
     });
   };
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFileError(null);
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const ext = file.name.substring(file.name.lastIndexOf(".")).toLowerCase();
+    if (!ALLOWED_EXTENSIONS.includes(ext)) {
+      setFileError(`Only ${ALLOWED_EXTENSIONS.join(", ")} files are supported`);
+      e.target.value = "";
+      return;
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      setFileError(`File too large (${(file.size / 1024).toFixed(0)} KB). Max ${MAX_FILE_SIZE / 1024} KB`);
+      e.target.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const content = reader.result as string;
+      setPendingFile({
+        fileName: file.name,
+        fileType: ext.replace(".", ""),
+        content,
+        size: file.size,
+        truncated: false,
+      });
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
+
+  const removePendingFile = () => {
+    setPendingFile(null);
+    setFileError(null);
+  };
+
   const handleSubmit = () => {
-    if (input.trim() && !disabled) {
-      onSend(input.trim());
+    if ((input.trim() || pendingFile) && !disabled) {
+      onSend(input.trim(), pendingFile ?? undefined);
       setInput("");
+      setPendingFile(null);
+      setFileError(null);
       setMentionOpen(false);
     }
   };
@@ -133,6 +191,44 @@ export function ChatInput({ onSend, onStop, disabled, isGenerating }: Props) {
 
   return (
     <div className="px-5 pb-5 pt-2">
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept={ALLOWED_EXTENSIONS.join(",")}
+        onChange={handleFileSelect}
+        className="hidden"
+      />
+
+      {/* Pending file preview */}
+      {pendingFile && (
+        <div className="flex items-center gap-2 mb-2 px-3 py-2 bg-surface-light border border-separator rounded-xl">
+          <svg className="w-4 h-4 text-primary flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <span className="text-[13px] text-foreground truncate flex-1">{pendingFile.fileName}</span>
+          <span className="text-[11px] text-muted">{(pendingFile.size / 1024).toFixed(1)} KB</span>
+          <button
+            onClick={removePendingFile}
+            className="w-5 h-5 flex items-center justify-center rounded-full text-muted hover:text-foreground hover:bg-elevated transition-colors duration-150"
+          >
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
+
+      {/* File error */}
+      {fileError && (
+        <div className="flex items-center gap-1.5 mb-2 px-3 py-1.5 text-[12px] text-red-400">
+          <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          </svg>
+          {fileError}
+        </div>
+      )}
+
       <div className="relative">
         {/* Mention dropdown — appears above the input */}
         {mentionOpen && filteredModels.length > 0 && (
@@ -186,24 +282,57 @@ export function ChatInput({ onSend, onStop, disabled, isGenerating }: Props) {
           />
 
           <div className="flex items-center gap-1.5 flex-shrink-0 pb-0.5">
-            <button
-              onClick={() => setWebSearch(!webSearchEnabled)}
-              title={webSearchEnabled ? "Web search ON — click to disable" : "Web search OFF — click to enable"}
-              className={`w-[30px] h-[30px] flex items-center justify-center rounded-full transition-all duration-200 relative ${
-                webSearchEnabled
-                  ? "bg-primary/15 text-primary ring-1 ring-primary/30"
-                  : "text-muted/40 hover:text-muted hover:bg-surface-hover"
-              }`}
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                <circle cx="12" cy="12" r="10" />
-                <path d="M2 12h20" />
-                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-                {!webSearchEnabled && (
-                  <line x1="4" y1="4" x2="20" y2="20" strokeWidth={2} strokeLinecap="round" />
+            {/* File attach button */}
+            <div className="relative group">
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={disabled}
+                className="w-[30px] h-[30px] flex items-center justify-center rounded-full text-muted/40 hover:text-muted hover:bg-surface-hover transition-all duration-200 disabled:opacity-20 disabled:cursor-not-allowed"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                </svg>
+              </button>
+              <div className="absolute bottom-full right-0 mb-2 px-2.5 py-1.5 rounded-lg bg-surface-light border border-separator shadow-lg text-[12px] leading-[1.4] text-foreground whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150">
+                <span className="font-medium">Attach file</span>
+                <span className="text-muted"> — txt, md, csv, json, code (max 100 KB)</span>
+                <div className="absolute top-full right-3 w-2 h-2 bg-surface-light border-r border-b border-separator rotate-45 -mt-1" />
+              </div>
+            </div>
+
+            <div className="relative group">
+              <button
+                onClick={() => setWebSearch(!webSearchEnabled)}
+                className={`w-[30px] h-[30px] flex items-center justify-center rounded-full transition-all duration-200 ${
+                  webSearchEnabled
+                    ? "bg-primary/15 text-primary ring-1 ring-primary/30"
+                    : "text-muted/40 hover:text-muted hover:bg-surface-hover"
+                }`}
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M2 12h20" />
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                  {!webSearchEnabled && (
+                    <line x1="4" y1="4" x2="20" y2="20" strokeWidth={2} strokeLinecap="round" />
+                  )}
+                </svg>
+              </button>
+              <div className="absolute bottom-full right-0 mb-2 px-2.5 py-1.5 rounded-lg bg-surface-light border border-separator shadow-lg text-[12px] leading-[1.4] text-foreground whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150">
+                {webSearchEnabled ? (
+                  <>
+                    <span className="text-primary font-medium">Web search ON</span>
+                    <span className="text-muted"> — models use live internet data</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="font-medium">Web search OFF</span>
+                    <span className="text-muted"> — click to enable</span>
+                  </>
                 )}
-              </svg>
-            </button>
+                <div className="absolute top-full right-3 w-2 h-2 bg-surface-light border-r border-b border-separator rotate-45 -mt-1" />
+              </div>
+            </div>
             {isGenerating && (
               <button
                 onClick={onStop}
@@ -217,7 +346,7 @@ export function ChatInput({ onSend, onStop, disabled, isGenerating }: Props) {
             )}
             <button
               onClick={handleSubmit}
-              disabled={!input.trim() || disabled}
+              disabled={(!input.trim() && !pendingFile) || disabled}
               title="Send message"
               className="w-[30px] h-[30px] flex items-center justify-center rounded-full bg-primary text-white transition-all duration-150 disabled:opacity-20 disabled:cursor-not-allowed hover:bg-primary-hover active:scale-95"
             >

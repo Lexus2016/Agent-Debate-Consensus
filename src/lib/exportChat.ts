@@ -18,6 +18,11 @@ export function messagesToMarkdown(messages: Message[]): string {
       minute: "2-digit",
     });
 
+    if (msg.role === "system") {
+      md += `> *[${time}] ${msg.content}*\n\n`;
+      continue;
+    }
+
     const author = msg.role === "user" ? "You (Moderator)" : (msg.modelName || "Agent");
 
     md += `### ${author}\n`;
@@ -27,7 +32,11 @@ export function messagesToMarkdown(messages: Message[]): string {
       md += `> **Thinking:** ${msg.reasoning}\n\n`;
     }
 
-    md += `${msg.content}\n\n---\n\n`;
+    md += `${msg.content}\n`;
+    if (msg.attachment) {
+      md += `\n📎 **${msg.attachment.fileName}** (${(msg.attachment.size / 1024).toFixed(1)} KB)\n\n\`\`\`\n${msg.attachment.content}\n\`\`\`\n`;
+    }
+    md += `\n---\n\n`;
   }
 
   return md;
@@ -42,6 +51,9 @@ export function messageToMarkdown(message: Message): string {
   }
 
   md += message.content;
+  if (message.attachment) {
+    md += `\n\n📎 **${message.attachment.fileName}** (${(message.attachment.size / 1024).toFixed(1)} KB)\n\n\`\`\`\n${message.attachment.content}\n\`\`\``;
+  }
   return md;
 }
 

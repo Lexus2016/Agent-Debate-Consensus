@@ -37,19 +37,23 @@ function highlightMentions(
 
       if (mentionedModel) {
         parts.push(
-          <span
-            key={match.index}
-            className="font-semibold"
-            style={{ color: inUserBubble ? "white" : mentionedModel.color }}
-          >
-            {inUserBubble && (
-              <span
-                className="inline-block w-1.5 h-1.5 rounded-full mr-0.5 align-middle"
-                style={{ backgroundColor: mentionedModel.color }}
-              />
-            )}
-            @{mentionedModel.shortName}
-          </span>
+          inUserBubble ? (
+            <span
+              key={match.index}
+              className="inline-flex items-center font-semibold px-1.5 py-0.5 rounded-md text-white text-[0.9em]"
+              style={{ backgroundColor: `${mentionedModel.color}80` }}
+            >
+              @{mentionedModel.shortName}
+            </span>
+          ) : (
+            <span
+              key={match.index}
+              className="font-semibold"
+              style={{ color: mentionedModel.color }}
+            >
+              @{mentionedModel.shortName}
+            </span>
+          )
         );
       } else if (mentionName.toLowerCase() === "user") {
         parts.push(
@@ -73,6 +77,7 @@ function highlightMentions(
 }
 
 const COLLAPSE_THRESHOLD = 300; // pixels
+const FILE_PREVIEW_LINES = 20;
 
 interface Props {
   message: Message;
@@ -87,6 +92,7 @@ export function MessageBubble({ message, onBoost }: Props) {
   const [reasoningOpen, setReasoningOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [fileExpanded, setFileExpanded] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const isUser = message.role === "user";
   const allModels = [...activeModels, ...availableModels];
@@ -104,6 +110,20 @@ export function MessageBubble({ message, onBoost }: Props) {
   };
 
   const avatarLetter = model?.shortName?.[0]?.toUpperCase() ?? "A";
+
+  // System event notifications — centered, muted
+  if (message.role === "system") {
+    return (
+      <div className="flex justify-center my-2 animate-fade-in">
+        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-light/50 border border-separator/50">
+          <svg className="w-3 h-3 text-amber-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span className="text-[12px] text-muted">{message.content}</span>
+        </div>
+      </div>
+    );
+  }
 
   // Don't render empty messages that finished streaming
   if (!isUser && !message.content && !message.isStreaming) {
@@ -137,9 +157,40 @@ export function MessageBubble({ message, onBoost }: Props) {
             <span className="text-[12px] text-muted font-medium">You</span>
           </div>
           <div className="bg-primary text-white rounded-[20px] rounded-br-md px-4 py-2.5">
-            <div className="whitespace-pre-wrap leading-[1.6]" style={{ fontSize: `${fontSize}px` }}>
-              {highlightMentions(message.content, uniqueModels, true)}
-            </div>
+            {message.content && (
+              <div className="whitespace-pre-wrap leading-[1.6]" style={{ fontSize: `${fontSize}px` }}>
+                {highlightMentions(message.content, uniqueModels, true)}
+              </div>
+            )}
+            {message.attachment && (
+              <div className={`${message.content ? "mt-2 pt-2 border-t border-white/20" : ""}`}>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setFileExpanded(!fileExpanded); }}
+                  className="flex items-center gap-2 text-[13px] text-white/80 hover:text-white transition-colors w-full"
+                >
+                  <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <span className="truncate">{message.attachment.fileName}</span>
+                  <span className="text-[11px] text-white/50 flex-shrink-0">
+                    {(message.attachment.size / 1024).toFixed(1)} KB
+                  </span>
+                  <svg
+                    className={`w-3 h-3 flex-shrink-0 transition-transform duration-150 ${fileExpanded ? "rotate-90" : ""}`}
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+                {fileExpanded && (
+                  <pre className="mt-2 p-2 bg-black/20 rounded-lg text-[12px] leading-[1.5] overflow-x-auto max-h-[300px] overflow-y-auto whitespace-pre-wrap break-words">
+                    {message.attachment.content.split("\n").length > FILE_PREVIEW_LINES
+                      ? message.attachment.content.split("\n").slice(0, FILE_PREVIEW_LINES).join("\n") + `\n\n... (${message.attachment.content.split("\n").length - FILE_PREVIEW_LINES} more lines)`
+                      : message.attachment.content}
+                  </pre>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
