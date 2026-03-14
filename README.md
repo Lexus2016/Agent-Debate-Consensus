@@ -42,139 +42,137 @@ That's it. No complicated setup, no workflows to learn.
 ## Core Features
 
 ### Multi-Agent Debates
-Up to 8 AI agents debate simultaneously (configurable via `MAX_ACTIVE_MODELS`). Each model contributes independently, then reacts to others' arguments. Per-model round tracking ensures fair contribution — no model dominates the conversation.
+Up to 8 AI agents debate simultaneously (configurable via `MAX_ACTIVE_MODELS`). Each model contributes independently, then reacts to others' arguments.
 
-**Default lineup:**
-- **Kimi K2** (Moonshot AI) — deep reasoning, excellent at nuance
-- **Gemini 3 Pro** (Google) — broad knowledge, strong pattern recognition
-- **Claude Haiku 4.5** (Anthropic) — clear logic, balanced perspective
-- **Grok 4.1 Fast** (xAI) — quick thinking, contrarian edge
+**Default lineup (all free):**
+- **Nemotron 3 Super 120B** (NVIDIA) — powerful reasoning, zero cost
+- **Llama 3.3 70B** (Meta) — versatile, strong at analysis
+- **Mistral Small 3.1** (Mistral AI) — fast, compact, multilingual
+- **Gemma 3 27B** (Google) — efficient, great at structured output
 
 Plus 400+ additional models available via OpenRouter's catalog.
 
-### Real-time Streaming
-No waiting for complete responses. Tokens appear as they're generated via Server-Sent Events (SSE). Watch the models think in real time.
+### 3-Phase Debate Engine
+The debate follows a structured flow:
 
-### Smart Debate Engine
-- **Per-model round tracking** — 2 rounds per model per user message
-- **Priority-based queuing** — prevents models from stepping on each other
-- **Cooldown management** — fair opportunity for all participants
-- **Question detection** — automatically triggers all models when it detects a question
-- **Context window intelligence** — user question always pinned (never pushed out), correct role mapping
+1. **Opening (Phase 1)** — All models share their independent perspective on the topic. The moderator speaks last to hear all views first.
+2. **Discussion (Phase 2)** — Models challenge, question, and build on each other's arguments via @mentions. Bounded by per-model (5) and total (8) discussion caps to prevent infinite loops.
+3. **Summary (Phase 3)** — The moderator (or a random summarizer if none assigned) provides a final synthesis with justified conclusions.
+
+Under the hood: priority-based queue (opening=80, discussion=70, summary=50), 10s cooldowns, simulated reading delays for natural pacing.
 
 ### @Mention System
-Direct questions to specific agents with `@Kimi`, `@Gemini`, `@Claude`, or `@Grok`. Press `@` to see the dropdown. Navigate with arrow keys, select with Enter or Tab.
+Direct questions to specific agents with `@Nemotron`, `@Llama`, etc. Press `@` to see the dropdown. Navigate with arrow keys, select with Enter or Tab.
 
-Each mention is color-coded with the agent's unique color — visually distinct in chat.
+- **@ModelName** — Direct a question or challenge to one participant
+- **@ALL** — Address all participants at once; everyone who already spoke will respond
+- Color-coded mentions — each agent's unique color, visually distinct in chat
 
-### AI Moderator Role
-Designate any model as debate moderator with a star icon. The moderator:
-- Synthesizes and summarizes key points
-- Resolves conflicts between positions
-- Proposes paths to consensus
-- Auto-reassigns if the moderator fails to respond
+### AI Moderator (Participant + Guide)
+Designate any model as moderator with the star icon. The moderator is a **full participant**:
+- Shares its own opinion in the opening phase (speaks last)
+- Evaluates and challenges other participants' arguments during discussion
+- Uses @mentions and @ALL to direct the conversation
+- Provides final summary with justified conclusions when discussion settles
+- Up to 3 moderation cycles (discussion settles, moderator intervenes, repeat)
+- Auto-reassigns if the moderator model fails
 
-This transforms debate from parallel monologues into actual dialogue.
+### Retry Logic
+When a model returns an error, the system automatically retries:
+- 3 retries with progressive delays (5s, 15s, 30s)
+- Status messages in chat ("Model: error, retrying 1/3...")
+- Final failure message if all retries exhausted
+- Automatic moderator reassignment on failure
+
+### File Attachments
+Attach text files (code, markdown, CSV, JSON, config files up to 100KB) to your messages. Files are included in the AI context so models can analyze, review, or discuss attached content.
+
+### Real-time Streaming
+Tokens appear as they're generated via Server-Sent Events (SSE). Watch the models think token by token in real time.
 
 ### Boost Button
-See an idea worth developing? Click the lightning bolt on any AI message to say "develop this further." The platform creates a synthetic user message quoting the idea, prompting deeper exploration.
-
-One-click idea amplification.
+Click the lightning bolt on any AI message to say "develop this further." One-click idea amplification.
 
 ### Temperature Control
-Choose your debate style:
 - **Creative** (0.9) — exploratory, generates novel perspectives
 - **Balanced** (0.7) — thoughtful, good for most debates
 - **Precise** (0.3) — analytical, minimizes tangents
 
-Styled as a segmented control in the sidebar for instant switching.
-
 ### Agent Discovery
-Browse and add 400+ models from OpenRouter's catalog. Not satisfied with the default lineup? Swap agents mid-debate. Experiment with different combinations.
-
-The lineup you build is yours.
+Browse and add 400+ models from OpenRouter's catalog. Swap agents mid-debate.
 
 ### Web Search
-Toggle the globe icon in the chat input to enable real-time web search for all models. Powered by OpenRouter's `:online` mode — models access current internet data alongside their training knowledge. When enabled, every model response is augmented with fresh web results. The globe icon shows a strikethrough line when disabled for clear visual feedback. Uses native search for providers like Anthropic, OpenAI, and xAI; Exa engine for all others (~$0.02 per request).
+Toggle the globe icon to enable real-time web search. Powered by OpenRouter's `:online` mode — models access current internet data alongside their training knowledge.
 
 ### Extended Thinking Support
-Models with reasoning/chain-of-thought capabilities show their working. Thinking steps collapse by default ("Thinking..." section), expandable for full transparency into model reasoning.
-
-### Topic Pinning
-Your first message appears as a pinned banner at the top of chat. Never lose sight of what you're debating about as the conversation grows.
-
-### Debate Sessions
-Save, load, delete entire debates. Auto-saves when switching or starting new debates. Full state restoration:
-- All messages (with streaming state preserved)
-- Active models
-- Moderator assignment
-- Temperature settings
-- Debate topic
-
-Resume complex conversations weeks later.
+Models with reasoning/chain-of-thought capabilities show their working. Thinking steps collapse by default, expandable for full transparency.
 
 ### Export & Copy
-- **Export to Markdown** — Download entire debate as a `.md` file for documentation, sharing, or archiving
+- **Export to Markdown** — Full debate with participant list, moderator info, and timestamps
 - **Copy Messages** — Copy any individual message to clipboard in Markdown format
 
-### Model Failure Handling
-- Red indicators for failed models
-- Tooltip shows error detail
-- Auto-moderator reassignment if moderator fails
-- Retry button to attempt recovery
+### Debate Sessions
+Save, load, delete entire debates. Auto-saves when switching. Full state restoration including messages, models, moderator, temperature, and topic.
 
-Robust even when some models stumble.
+### Proactive API Key
+Even in public mode with free models, users can add their own OpenRouter API key at any time via the sidebar button — unlocking all models, web search, and avoiding rate limits.
+
+### Model Failure Handling
+Red indicators, error tooltips, auto-moderator reassignment, retry button for recovery.
 
 ### Extended UI Controls
-- **Dark/Light Theme** — Toggle in sidebar header for comfortable reading any time
-- **Font Size Slider** — Adjust for comfortable long reading sessions
-- **Click-to-Expand** — Long messages auto-collapse with gradient fade; click to expand/collapse
-- **Mobile Responsive** — Sidebar overlay with backdrop on mobile, fixed on desktop
-- **Collapsible Sidebar** — Toggle with animation, hamburger menu when collapsed
+- **Dark/Light Theme** — Toggle in sidebar header
+- **Font Size Slider** — Adjust for comfortable reading
+- **Click-to-Expand** — Long messages auto-collapse with gradient fade
+- **Mobile Responsive** — Sidebar overlay on mobile, fixed on desktop
+- **Onboarding** — Clear visual cues when no agents are active
 
 ### Public Mode
-Deploy without requiring API keys on the server. Users provide their own OpenRouter credentials. Ideal for shared instances and open experimentation.
+Deploy without requiring API keys. Users provide their own OpenRouter credentials. Free models work instantly; paid models require a user key.
 
 ---
 
 ## How It Works: The Debate Algorithm
 
-1. **Topic Injection** — You introduce a topic or question. All active agents receive it as context, unaware of what others will draft.
+1. **Topic Injection** — You pose a question or topic. All active agents receive it as context.
 
-2. **Independent Responses** — Each agent formulates a position based on the question, their training, and their reasoning style.
+2. **Opening Phase** — Each agent formulates an independent position. The moderator speaks last to hear all views first. Priority queue ensures fair ordering.
 
-3. **Cross-Pollination** — Subsequent rounds include prior agent responses in the context. Models can now react, challenge, build on, or refute what others said.
+3. **Discussion Phase** — Agents challenge each other via @mentions. Back-and-forth exchanges are bounded by per-model (5) and total (8) caps. Use @ALL to trigger all participants.
 
-4. **Per-Model Rounds** — Each model gets up to 2 response rounds per user message. This ensures fair participation — no single model dominates by responding faster.
+4. **Moderation** — The AI moderator (or you) intervenes: evaluates arguments, challenges weak points, directs questions, proposes synthesis. Up to 3 moderation cycles.
 
-5. **Moderation** — You or an AI moderator intervenes: clarify terms, challenge weak arguments, direct questions to specific agents, propose synthesis.
+5. **Summary Phase** — When discussion settles, the moderator provides a final synthesis with justified conclusions. The round ends, and you can start a new topic.
 
-6. **Boost** — Identify promising arguments and develop them further with one click.
-
-7. **Convergence** — Through iterative exchange, agents refine positions, acknowledge stronger arguments, and move toward consensus — or surface irreconcilable differences worth knowing about.
-
-The result: **genuine dialogue between different minds**, not just parallel independent predictions.
+The result: **structured dialogue between different minds** with clear phases, fair participation, and definitive conclusions.
 
 ---
 
 ## Quick Start
 
-### 1. Clone the Repository
+### Option A: NPX (fastest)
+
+```bash
+npx degit Lexus2016/Agent-Debate-Consensus my-debate
+cd my-debate
+npm install
+cp .env.example .env.local   # Edit with your API key
+npm run dev
+```
+
+### Option B: Git Clone
 
 ```bash
 git clone https://github.com/Lexus2016/Agent-Debate-Consensus.git
 cd Agent-Debate-Consensus
-```
-
-### 2. Install Dependencies
-
-```bash
 npm install
+cp .env.example .env.local   # Edit with your API key
+npm run dev
 ```
 
-### 3. Configure Environment
+### Configure Environment
 
-Create a `.env.local` file in the project root:
+Edit `.env.local`:
 
 ```env
 OPENROUTER_API_KEY=your_api_key_here
@@ -182,15 +180,8 @@ MAX_ACTIVE_MODELS=8
 ```
 
 - Get your API key from [openrouter.ai/keys](https://openrouter.ai/keys)
-- `MAX_ACTIVE_MODELS` sets the debate participant limit (default: 8, recommended max)
-
-For **public mode** (users provide their own keys), leave `OPENROUTER_API_KEY` empty.
-
-### 4. Start Development Server
-
-```bash
-npm run dev
-```
+- `MAX_ACTIVE_MODELS` sets the debate participant limit (default: 8)
+- For **public mode** (users provide their own keys), leave `OPENROUTER_API_KEY` empty
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
@@ -212,15 +203,15 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Available Models
 
-| Agent | Provider | @Mention | Type |
+| Agent | Provider | @Mention | Cost |
 |-------|----------|----------|------|
-| Kimi K2 | Moonshot AI | `@Kimi` | Default |
-| Gemini 3 Pro | Google | `@Gemini` | Default |
-| Claude Haiku 4.5 | Anthropic | `@Claude` | Default |
-| Grok 4.1 Fast | xAI | `@Grok` | Default |
-| 400+ more | OpenRouter catalog | via Agent Discovery | Custom |
+| Nemotron 3 Super 120B | NVIDIA | `@Nemotron` | Free |
+| Llama 3.3 70B | Meta | `@Llama` | Free |
+| Mistral Small 3.1 | Mistral AI | `@Mistral` | Free |
+| Gemma 3 27B | Google | `@Gemma` | Free |
+| 400+ more | OpenRouter catalog | via Agent Discovery | Varies |
 
-Switch agents mid-debate. Test different model combinations. Build your ideal debate team.
+All default models are free. Switch agents mid-debate. Add premium models with your own API key.
 
 ---
 

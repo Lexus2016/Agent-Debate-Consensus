@@ -7,7 +7,7 @@ import { useChatStore } from "@/store/chatStore";
 interface ApiKeyPromptModalProps {
   isOpen: boolean;
   onClose: () => void;
-  reason: "paid-model" | "web-search";
+  reason: "paid-model" | "web-search" | "proactive";
   modelName?: string;
 }
 
@@ -76,12 +76,14 @@ export function ApiKeyPromptModal({
   if (!isOpen) return null;
 
   const title =
-    reason === "paid-model" ? "API Key Required" : "API Key Required";
+    reason === "proactive" ? "Add API Key" : "API Key Required";
 
   const description =
     reason === "paid-model"
       ? `${modelName || "This model"} is a paid model. Enter your OpenRouter API key to unlock paid models, web search, and unlimited access.`
-      : "Web search requires an API key. Enter your OpenRouter key to enable web search, paid models, and unlimited access.";
+      : reason === "proactive"
+        ? "Add your OpenRouter API key to unlock all models, web search, and avoid rate limits on free models."
+        : "Web search requires an API key. Enter your OpenRouter key to enable web search, paid models, and unlimited access.";
 
   return createPortal(
     <div

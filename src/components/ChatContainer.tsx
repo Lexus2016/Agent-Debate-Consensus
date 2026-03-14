@@ -15,6 +15,7 @@ import { MessageList } from "./MessageList";
 import { ChatInput } from "./ChatInput";
 import { ModelSelector } from "./ModelSelector";
 import { WelcomeScreen } from "./WelcomeScreen";
+import { ApiKeyPromptModal } from "./ApiKeyPromptModal";
 import { Message, TemperaturePreset, FileAttachment } from "@/types/chat";
 
 const TEMP_MAP: Record<TemperaturePreset, number> = {
@@ -129,6 +130,7 @@ function ChatApp() {
   const currentSessionId = useChatStore((state) => state.currentSessionId);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [keyPromptOpen, setKeyPromptOpen] = useState(false);
 
   const isGenerating = typingModels.length > 0 || messages.some((m) => m.isStreaming);
 
@@ -595,7 +597,7 @@ function ChatApp() {
           </div>
 
           <div className="flex items-center justify-between mt-1.5">
-            {apiKey && (
+            {apiKey ? (
               <button
                 onClick={clearApiKey}
                 className="flex items-center gap-1 h-[26px] text-[11px] text-muted/60 hover:text-red-400 rounded-md hover:bg-elevated transition-colors duration-150 px-1.5"
@@ -606,12 +608,23 @@ function ChatApp() {
                 </svg>
                 Disconnect
               </button>
-            )}
+            ) : hasServerKey ? (
+              <button
+                onClick={() => setKeyPromptOpen(true)}
+                className="flex items-center gap-1 h-[26px] text-[11px] text-muted/60 hover:text-primary rounded-md hover:bg-elevated transition-colors duration-150 px-1.5"
+                title="Add your OpenRouter API key to unlock all models and avoid rate limits"
+              >
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                </svg>
+                API Key
+              </button>
+            ) : null}
             <a
               href="https://github.com/Lexus2016/Agent-Debate-Consensus"
               target="_blank"
               rel="noopener noreferrer"
-              className={`flex items-center gap-1 h-[26px] text-[11px] text-muted/60 hover:text-foreground rounded-md hover:bg-elevated transition-colors duration-150 px-1.5 ${apiKey ? "" : "ml-auto"}`}
+              className={`flex items-center gap-1 h-[26px] text-[11px] text-muted/60 hover:text-foreground rounded-md hover:bg-elevated transition-colors duration-150 px-1.5 ${apiKey || hasServerKey ? "" : "ml-auto"}`}
               title="View source on GitHub"
             >
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
@@ -647,6 +660,12 @@ function ChatApp() {
           isGenerating={isGenerating}
         />
       </div>
+
+      <ApiKeyPromptModal
+        isOpen={keyPromptOpen}
+        onClose={() => setKeyPromptOpen(false)}
+        reason="proactive"
+      />
     </div>
   );
 }
