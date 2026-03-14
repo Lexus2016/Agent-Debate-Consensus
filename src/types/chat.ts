@@ -38,6 +38,8 @@ export interface ChatState {
   typingModels: TypingState[];
   contextWindowSize: number;
   theme: Theme;
+  publicMode: boolean | null;
+  apiKey: string | null;
 
   addMessage: (message: Omit<Message, "id" | "timestamp">) => string;
   updateMessage: (id: string, content: string, reasoning?: string) => void;
@@ -48,6 +50,9 @@ export interface ChatState {
   removeModel: (modelId: string) => void;
   setContextWindowSize: (size: number) => void;
   setTheme: (theme: Theme) => void;
+  setPublicMode: (mode: boolean) => void;
+  setApiKey: (key: string) => void;
+  clearApiKey: () => void;
   clearChat: () => void;
   initializeModels: (models: Model[]) => void;
 }

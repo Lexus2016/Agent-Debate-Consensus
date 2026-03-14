@@ -13,6 +13,7 @@ import { MessageList } from "./MessageList";
 import { ChatInput } from "./ChatInput";
 import { ModelSelector } from "./ModelSelector";
 import { ActiveModels } from "./ActiveModels";
+import { WelcomeScreen } from "./WelcomeScreen";
 import { Message } from "@/types/chat";
 
 export function ChatContainer() {
@@ -27,6 +28,71 @@ export function ChatContainer() {
   const messages = useChatStore((state) => state.messages);
   const theme = useChatStore((state) => state.theme);
   const setTheme = useChatStore((state) => state.setTheme);
+  const publicMode = useChatStore((state) => state.publicMode);
+  const setPublicMode = useChatStore((state) => state.setPublicMode);
+  const apiKey = useChatStore((state) => state.apiKey);
+  const setApiKey = useChatStore((state) => state.setApiKey);
+  const clearApiKey = useChatStore((state) => state.clearApiKey);
+
+  const [configLoaded, setConfigLoaded] = useState(false);
+
+  const isGenerating = typingModels.length > 0 || messages.some((m) => m.isStreaming);
+
+  // Load config and restore session key on mount
+  useEffect(() => {
+    async function init() {
+      try {
+        const res = await fetch("/api/config");
+        const data = await res.json();
+        setPublicMode(data.publicMode);
+
+        if (data.publicMode) {
+          const stored = sessionStorage.getItem("openrouter-api-key");
+          if (stored) {
+            setApiKey(stored);
+          }
+        }
+      } catch {
+        // If config fails, assume private mode
+        setPublicMode(false);
+      }
+      setConfigLoaded(true);
+    }
+    init();
+  }, [setPublicMode, setApiKey]);
+
+  // Show nothing until config is loaded (prevents flash)
+  if (!configLoaded) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-background">
+        <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // Public mode without key — show welcome screen
+  if (publicMode && !apiKey) {
+    return <WelcomeScreen />;
+  }
+
+  return <ChatApp />;
+}
+
+// Extracted to a separate component to keep hooks unconditional
+function ChatApp() {
+  const addMessage = useChatStore((state) => state.addMessage);
+  const updateMessage = useChatStore((state) => state.updateMessage);
+  const completeMessage = useChatStore((state) => state.completeMessage);
+  const setTyping = useChatStore((state) => state.setTyping);
+  const activeModels = useChatStore((state) => state.activeModels);
+  const typingModels = useChatStore((state) => state.typingModels);
+  const contextWindowSize = useChatStore((state) => state.contextWindowSize);
+  const clearChat = useChatStore((state) => state.clearChat);
+  const messages = useChatStore((state) => state.messages);
+  const theme = useChatStore((state) => state.theme);
+  const setTheme = useChatStore((state) => state.setTheme);
+  const publicMode = useChatStore((state) => state.publicMode);
+  const clearApiKey = useChatStore((state) => state.clearApiKey);
 
   const isGenerating = typingModels.length > 0 || messages.some((m) => m.isStreaming);
 
@@ -196,35 +262,50 @@ export function ChatContainer() {
         </div>
 
         {/* Bottom toolbar */}
-        <div className="px-3 py-3 border-t border-separator flex gap-1.5">
-          {messages.length > 0 && (
+        <div className="px-3 py-3 border-t border-separator space-y-1.5">
+          <div className="flex gap-1.5">
+            {messages.length > 0 && (
+              <button
+                onClick={() => {
+                  const md = messagesToMarkdown(messages);
+                  const date = new Date().toISOString().split("T")[0];
+                  downloadMarkdown(md, `debate-${date}.md`);
+                }}
+                className="flex-1 flex items-center justify-center gap-1.5 h-[30px] text-[12px] text-muted hover:text-foreground rounded-lg hover:bg-elevated transition-colors duration-150"
+                title="Export debate as Markdown"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Export
+              </button>
+            )}
             <button
               onClick={() => {
-                const md = messagesToMarkdown(messages);
-                const date = new Date().toISOString().split("T")[0];
-                downloadMarkdown(md, `debate-${date}.md`);
+                clearChat();
+                conversationEngine.reset();
               }}
               className="flex-1 flex items-center justify-center gap-1.5 h-[30px] text-[12px] text-muted hover:text-foreground rounded-lg hover:bg-elevated transition-colors duration-150"
-              title="Export debate as Markdown"
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
               </svg>
-              Export
+              New Debate
+            </button>
+          </div>
+
+          {publicMode && (
+            <button
+              onClick={clearApiKey}
+              className="w-full flex items-center justify-center gap-1.5 h-[30px] text-[11px] text-muted/50 hover:text-red-400 rounded-lg hover:bg-elevated transition-colors duration-150"
+              title="Clear API key and return to welcome screen"
+            >
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              Disconnect API Key
             </button>
           )}
-          <button
-            onClick={() => {
-              clearChat();
-              conversationEngine.reset();
-            }}
-            className="flex-1 flex items-center justify-center gap-1.5 h-[30px] text-[12px] text-muted hover:text-foreground rounded-lg hover:bg-elevated transition-colors duration-150"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
-            New Debate
-          </button>
         </div>
       </div>
 

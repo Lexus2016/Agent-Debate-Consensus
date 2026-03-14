@@ -3,9 +3,16 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Agent Debate Consensus",
+  title: "Agent Debate Consensus — Multi-Agent AI Debate Platform",
   description:
-    "Multi-agent debate platform — AI models discuss, argue, and find consensus while you moderate",
+    "Multi-agent debate platform where AI models discuss, argue, and find consensus on any topic. Powered by OpenRouter.",
+  openGraph: {
+    title: "Agent Debate Consensus",
+    description: "Multi-agent AI debate platform — watch AI models discuss, argue, and find consensus",
+    url: "https://lryq.com",
+    siteName: "Agent Debate Consensus",
+    type: "website",
+  },
 };
 
 export default function RootLayout({

@@ -7,6 +7,12 @@ interface StreamCallbacks {
 // Track active abort controllers for cancellation
 const activeControllers = new Map<string, AbortController>();
 
+function getApiKeyHeader(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  const key = sessionStorage.getItem("openrouter-api-key");
+  return key ? { "x-api-key": key } : {};
+}
+
 export function stopAllStreams(): void {
   activeControllers.forEach((controller) => {
     controller.abort();
@@ -40,7 +46,10 @@ export async function streamModelResponse(
   try {
     const response = await fetch("/api/chat", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...getApiKeyHeader(),
+      },
       body: JSON.stringify({ model: modelId, messages }),
       signal: controller.signal,
     });

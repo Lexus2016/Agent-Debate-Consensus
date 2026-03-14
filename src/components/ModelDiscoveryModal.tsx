@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { useChatStore } from "@/store/chatStore";
 import { Model } from "@/types/chat";
 
@@ -22,6 +23,12 @@ interface ModelDiscoveryModalProps {
   onClose: () => void;
 }
 
+function getApiKeyHeader(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  const key = sessionStorage.getItem("openrouter-api-key");
+  return key ? { "x-api-key": key } : {};
+}
+
 export function ModelDiscoveryModal({ isOpen, onClose }: ModelDiscoveryModalProps) {
   const [models, setModels] = useState<OpenRouterModel[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,7 +45,9 @@ export function ModelDiscoveryModal({ isOpen, onClose }: ModelDiscoveryModalProp
   const fetchModels = async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/models");
+      const response = await fetch("/api/models", {
+        headers: getApiKeyHeader(),
+      });
       const data = await response.json();
       if (data.data) {
         setModels(data.data);
@@ -86,7 +95,7 @@ export function ModelDiscoveryModal({ isOpen, onClose }: ModelDiscoveryModalProp
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/50 backdrop-blur-sm">
       <div className="bg-surface border border-separator w-full max-w-[560px] max-h-[72vh] rounded-2xl shadow-2xl shadow-black/30 flex flex-col overflow-hidden animate-modal-in">
         <div className="flex items-center justify-between px-5 py-4 border-b border-separator">
@@ -176,6 +185,7 @@ export function ModelDiscoveryModal({ isOpen, onClose }: ModelDiscoveryModalProp
           </p>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
