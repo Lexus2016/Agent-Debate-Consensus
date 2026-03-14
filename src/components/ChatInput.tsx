@@ -12,6 +12,7 @@ interface Props {
 export function ChatInput({ onSend, onStop, disabled, isGenerating }: Props) {
   const [input, setInput] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [focused, setFocused] = useState(false);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -39,12 +40,20 @@ export function ChatInput({ onSend, onStop, disabled, isGenerating }: Props) {
 
   return (
     <div className="px-5 pb-5 pt-2">
-      <div className="relative">
+      <div
+        className={`flex items-end gap-2 bg-surface-light rounded-[14px] border px-3 py-2 transition-all duration-150 ${
+          focused
+            ? "border-primary/40 ring-1 ring-primary/20"
+            : "border-separator"
+        } ${disabled ? "opacity-30 cursor-not-allowed" : ""}`}
+      >
         <textarea
           ref={textareaRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
           placeholder={
             disabled
               ? "Select agents to begin..."
@@ -52,14 +61,15 @@ export function ChatInput({ onSend, onStop, disabled, isGenerating }: Props) {
           }
           disabled={disabled}
           rows={1}
-          className="w-full bg-surface-light rounded-[14px] border border-separator pl-4 pr-24 py-[10px] text-[15px] leading-[1.5] resize-none focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/20 disabled:opacity-30 disabled:cursor-not-allowed placeholder:text-muted transition-all duration-150"
+          className="flex-1 bg-transparent text-[15px] leading-[1.5] resize-none focus:outline-none disabled:cursor-not-allowed placeholder:text-muted py-0.5"
         />
-        <div className="absolute right-2 bottom-[6px] flex items-center gap-1.5">
+
+        <div className="flex items-center gap-1.5 flex-shrink-0 pb-0.5">
           {isGenerating && (
             <button
               onClick={onStop}
               title="Stop generation"
-              className="w-[32px] h-[32px] flex items-center justify-center rounded-full bg-surface-hover text-muted hover:text-foreground transition-colors duration-150"
+              className="w-[30px] h-[30px] flex items-center justify-center rounded-full bg-surface-hover text-muted hover:text-foreground transition-colors duration-150"
             >
               <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
                 <rect x="6" y="6" width="12" height="12" rx="2" />
@@ -70,9 +80,9 @@ export function ChatInput({ onSend, onStop, disabled, isGenerating }: Props) {
             onClick={handleSubmit}
             disabled={!input.trim() || disabled}
             title="Send message"
-            className="w-[32px] h-[32px] flex items-center justify-center rounded-full bg-primary text-white transition-all duration-150 disabled:opacity-20 disabled:cursor-not-allowed hover:bg-primary-hover active:scale-95"
+            className="w-[30px] h-[30px] flex items-center justify-center rounded-full bg-primary text-white transition-all duration-150 disabled:opacity-20 disabled:cursor-not-allowed hover:bg-primary-hover active:scale-95"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
             </svg>
           </button>
