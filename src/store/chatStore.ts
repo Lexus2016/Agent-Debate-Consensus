@@ -22,6 +22,7 @@ export const useChatStore = create<ChatState>()(
       temperature: "balanced" as TemperaturePreset,
       sessions: [],
       currentSessionId: null,
+      webSearchEnabled: false,
 
       addMessage: (message) => {
         const id = uuidv4();
@@ -110,7 +111,7 @@ export const useChatStore = create<ChatState>()(
       setContextWindowSize: (size) => set({ contextWindowSize: size }),
 
       setTheme: (theme) => {
-        document.documentElement.setAttribute("data-theme", theme);
+        // DOM update handled by ThemeProvider useEffect — keep store pure
         set({ theme });
       },
 
@@ -160,6 +161,8 @@ export const useChatStore = create<ChatState>()(
       initializeModels: (models) => set({ availableModels: models }),
 
       setTemperature: (preset) => set({ temperature: preset }),
+
+      setWebSearch: (enabled) => set({ webSearchEnabled: enabled }),
 
       saveCurrentSession: () =>
         set((state) => {
@@ -321,9 +324,25 @@ export const useChatStore = create<ChatState>()(
         contextWindowSize: state.contextWindowSize,
         theme: state.theme,
         fontSize: state.fontSize,
+        moderatorId: state.moderatorId,
         sessions: state.sessions,
         temperature: state.temperature,
+        webSearchEnabled: state.webSearchEnabled,
       }),
+      onRehydrateStorage: () => (state) => {
+        // Clean up stale streaming state that persisted from a page close mid-stream
+        if (state) {
+          const hasStale = state.messages.some((m) => m.isStreaming);
+          if (hasStale) {
+            useChatStore.setState({
+              messages: state.messages.map((m) =>
+                m.isStreaming ? { ...m, isStreaming: false } : m
+              ),
+              typingModels: [],
+            });
+          }
+        }
+      },
     }
   )
 );

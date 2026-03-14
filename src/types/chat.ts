@@ -81,7 +81,9 @@ export interface ChatState {
   temperature: TemperaturePreset;
   sessions: DebateSession[];
   currentSessionId: string | null;
+  webSearchEnabled: boolean;
   setTemperature: (preset: TemperaturePreset) => void;
+  setWebSearch: (enabled: boolean) => void;
   saveCurrentSession: () => void;
   loadSession: (id: string) => void;
   deleteSession: (id: string) => void;
