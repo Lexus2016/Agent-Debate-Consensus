@@ -12,9 +12,8 @@ import { messagesToMarkdown, downloadMarkdown } from "@/lib/exportChat";
 import { MessageList } from "./MessageList";
 import { ChatInput } from "./ChatInput";
 import { ModelSelector } from "./ModelSelector";
-import { ActiveModels } from "./ActiveModels";
 import { WelcomeScreen } from "./WelcomeScreen";
-import { Message, TemperaturePreset } from "@/types/chat";
+import { Message, TemperaturePreset, FileAttachment } from "@/types/chat";
 
 const TEMP_MAP: Record<TemperaturePreset, number> = {
   creative: 0.9,
@@ -109,6 +108,7 @@ function ChatApp() {
   const deleteSession = useChatStore((state) => state.deleteSession);
   const currentSessionId = useChatStore((state) => state.currentSessionId);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const isGenerating = typingModels.length > 0 || messages.some((m) => m.isStreaming);
 
@@ -254,7 +254,7 @@ function ChatApp() {
   );
 
   const handleSendMessage = useCallback(
-    (content: string) => {
+    (content: string, attachment?: FileAttachment) => {
       if (activeModels.length === 0) return;
 
       // New user message starts a fresh round
@@ -263,6 +263,7 @@ function ChatApp() {
       const messageId = addMessage({
         role: "user",
         content,
+        attachment,
       });
 
       setTimeout(() => {
@@ -346,75 +347,65 @@ function ChatApp() {
           </button>
         </div>
 
-        {/* Participants */}
-        <div className="px-3 pt-4 pb-2 min-w-[260px]">
-          <h2 className="px-2 text-[12px] font-medium text-muted uppercase tracking-[0.05em] mb-2.5">
-            Participants
-          </h2>
-          <ActiveModels />
-        </div>
-
-        {/* Moderator indicator */}
-        <div className="px-3 pb-2 min-w-[260px]">
-          <div className="px-2 flex items-center gap-2">
-            <span className="text-[11px] text-muted uppercase tracking-[0.04em]">Moderator:</span>
-            {moderatorId ? (
-              <span className="text-[12px] font-medium text-amber-400 flex items-center gap-1">
-                <span className="text-[9px]">&#9733;</span>
-                {activeModels.find((m) => m.id === moderatorId)?.shortName ?? "—"}
-              </span>
-            ) : (
-              <span className="text-[12px] font-medium text-primary">You</span>
-            )}
-          </div>
-        </div>
-
         {/* Agents list */}
-        <div className="flex-1 overflow-y-auto px-3 pt-1 min-w-[260px]">
+        <div className="flex-1 overflow-y-auto px-3 pt-4 min-w-[260px]">
           <ModelSelector />
 
-          {/* Debate History */}
+          {/* Debate History — collapsible */}
           {sortedSessions.length > 0 && (
             <div className="mt-4 pt-3 border-t border-separator">
-              <h3 className="px-2 text-[12px] font-medium text-muted uppercase tracking-[0.05em] mb-2">
-                History
-              </h3>
-              <div className="space-y-px">
-                {sortedSessions.map((session) => (
-                  <div key={session.id} className="group relative">
-                    <button
-                      onClick={() => {
-                        loadSession(session.id);
-                        conversationEngine.reset();
-                        setSidebarOpen(false);
-                      }}
-                      className={`w-full text-left px-2 py-[6px] rounded-lg text-[13px] truncate transition-all duration-150 ${
-                        session.id === currentSessionId
-                          ? "bg-elevated text-foreground"
-                          : "text-foreground/70 hover:bg-elevated"
-                      }`}
-                      title={session.title}
-                    >
-                      {session.title}
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteSession(session.id);
-                      }}
-                      className="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-md text-[11px] text-muted hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all duration-150"
-                      title="Delete"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
-              </div>
+              <button
+                onClick={() => setHistoryOpen(!historyOpen)}
+                className="w-full flex items-center justify-between px-2 mb-1"
+              >
+                <span className="text-[12px] font-medium text-muted uppercase tracking-[0.05em]">
+                  History
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] text-muted/60">{sortedSessions.length}</span>
+                  <svg className={`w-3 h-3 text-muted transition-transform duration-150 ${historyOpen ? "rotate-90" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </button>
+              {historyOpen && (
+                <div className="space-y-px">
+                  {sortedSessions.map((session) => (
+                    <div key={session.id} className="group relative">
+                      <button
+                        onClick={() => {
+                          loadSession(session.id);
+                          conversationEngine.reset();
+                          setSidebarOpen(false);
+                        }}
+                        className={`w-full text-left px-2 py-[6px] rounded-lg text-[13px] truncate transition-all duration-150 ${
+                          session.id === currentSessionId
+                            ? "bg-elevated text-foreground"
+                            : "text-foreground/70 hover:bg-elevated"
+                        }`}
+                        title={session.title}
+                      >
+                        {session.title}
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteSession(session.id);
+                        }}
+                        className="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-md text-[11px] text-muted hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all duration-150"
+                        title="Delete"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
 
-        {/* Temperature control */}
+        {/* Settings: Style + Font size — merged into one block */}
         <div className="px-4 py-2.5 border-t border-separator min-w-[260px]">
           <div className="flex items-center gap-1 mb-1.5">
             <span className="text-[11px] text-muted uppercase tracking-[0.04em]">Style:</span>
@@ -434,11 +425,7 @@ function ChatApp() {
               </button>
             ))}
           </div>
-        </div>
-
-        {/* Font size slider */}
-        <div className="px-4 py-2.5 border-t border-separator min-w-[260px]">
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 mt-2">
             <span className="text-[12px] text-muted select-none">A</span>
             <input
               type="range"
@@ -454,7 +441,7 @@ function ChatApp() {
         </div>
 
         {/* Bottom toolbar */}
-        <div className="px-3 py-3 border-t border-separator space-y-1.5 min-w-[260px]">
+        <div className="px-3 py-2.5 border-t border-separator min-w-[260px]">
           <div className="flex gap-1.5">
             {messages.length > 0 && (
               <button
@@ -486,31 +473,32 @@ function ChatApp() {
             </button>
           </div>
 
-          {publicMode && (
-            <button
-              onClick={clearApiKey}
-              className="w-full flex items-center justify-center gap-1.5 h-[30px] text-[12px] text-muted/70 hover:text-red-400 rounded-lg hover:bg-elevated transition-colors duration-150"
-              title="Clear API key and return to welcome screen"
+          <div className="flex items-center justify-between mt-1.5">
+            {publicMode && (
+              <button
+                onClick={clearApiKey}
+                className="flex items-center gap-1 h-[26px] text-[11px] text-muted/60 hover:text-red-400 rounded-md hover:bg-elevated transition-colors duration-150 px-1.5"
+                title="Clear API key and return to welcome screen"
+              >
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Disconnect
+              </button>
+            )}
+            <a
+              href="https://github.com/Lexus2016/Agent-Debate-Consensus"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`flex items-center gap-1 h-[26px] text-[11px] text-muted/60 hover:text-foreground rounded-md hover:bg-elevated transition-colors duration-150 px-1.5 ${publicMode ? "" : "ml-auto"}`}
+              title="View source on GitHub"
             >
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
               </svg>
-              Disconnect API Key
-            </button>
-          )}
-
-          <a
-            href="https://github.com/Lexus2016/Agent-Debate-Consensus"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-1.5 h-[30px] text-[12px] text-muted/70 hover:text-foreground rounded-lg hover:bg-elevated transition-colors duration-150"
-            title="View source on GitHub"
-          >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
-            </svg>
-            GitHub
-          </a>
+              GitHub
+            </a>
+          </div>
         </div>
       </div>
 

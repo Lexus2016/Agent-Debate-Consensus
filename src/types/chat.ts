@@ -13,11 +13,20 @@ export interface Model {
   context_length?: number;
 }
 
+export interface FileAttachment {
+  fileName: string;
+  fileType: string;
+  content: string;
+  size: number;
+  truncated: boolean;
+}
+
 export interface Message {
   id: string;
-  role: "user" | "assistant";
+  role: "user" | "assistant" | "system";
   content: string;
   reasoning?: string;
+  attachment?: FileAttachment;
   modelId?: string;
   modelName?: string;
   timestamp: number;

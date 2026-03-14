@@ -33,6 +33,7 @@ export function ModelDiscoveryModal({ isOpen, onClose }: ModelDiscoveryModalProp
   const [models, setModels] = useState<OpenRouterModel[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [freeOnly, setFreeOnly] = useState(false);
   const addAvailableModel = useChatStore((state) => state.addAvailableModel);
   const availableModels = useChatStore((state) => state.availableModels);
 
@@ -68,13 +69,18 @@ export function ModelDiscoveryModal({ isOpen, onClose }: ModelDiscoveryModalProp
     }
   };
 
+  const isFreeModel = (m: OpenRouterModel) =>
+    parseFloat(m.pricing.prompt) === 0 && parseFloat(m.pricing.completion) === 0;
+
   const filteredModels = useMemo(() => {
-    return models.filter(
-      (m) =>
+    return models.filter((m) => {
+      const matchesSearch =
         m.name.toLowerCase().includes(search.toLowerCase()) ||
-        m.id.toLowerCase().includes(search.toLowerCase())
-    );
-  }, [models, search]);
+        m.id.toLowerCase().includes(search.toLowerCase());
+      const matchesFree = !freeOnly || isFreeModel(m);
+      return matchesSearch && matchesFree;
+    });
+  }, [models, search, freeOnly]);
 
   const handleAddModel = (orModel: OpenRouterModel) => {
     const provider = orModel.id.split("/")[0];
@@ -119,7 +125,7 @@ export function ModelDiscoveryModal({ isOpen, onClose }: ModelDiscoveryModalProp
           </button>
         </div>
 
-        <div className="px-5 py-3 border-b border-separator">
+        <div className="px-5 py-3 border-b border-separator space-y-2">
           <input
             type="text"
             placeholder="Search by name or provider..."
@@ -128,6 +134,27 @@ export function ModelDiscoveryModal({ isOpen, onClose }: ModelDiscoveryModalProp
             onChange={(e) => setSearch(e.target.value)}
             autoFocus
           />
+          <button
+            onClick={() => setFreeOnly(!freeOnly)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium border transition-all duration-150 cursor-pointer ${
+              freeOnly
+                ? "bg-green-500/15 text-green-400 border-green-500/30 ring-1 ring-green-500/20"
+                : "text-muted border-separator hover:text-foreground hover:border-muted/40 hover:bg-surface-light"
+            }`}
+          >
+            <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center flex-shrink-0 transition-all duration-150 ${
+              freeOnly
+                ? "bg-green-500/25 border-green-500/50"
+                : "border-muted/40"
+            }`}>
+              {freeOnly && (
+                <svg className="w-2.5 h-2.5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+            </div>
+            Free only
+          </button>
         </div>
 
         <div className="flex-1 overflow-y-auto px-3 py-2 space-y-1">
@@ -143,6 +170,7 @@ export function ModelDiscoveryModal({ isOpen, onClose }: ModelDiscoveryModalProp
           ) : (
             filteredModels.map((model) => {
               const isAdded = availableModels.some((m) => m.id === model.id);
+              const free = isFreeModel(model);
               const promptPrice = (
                 parseFloat(model.pricing.prompt) * 1000000
               ).toFixed(2);
@@ -163,10 +191,21 @@ export function ModelDiscoveryModal({ isOpen, onClose }: ModelDiscoveryModalProp
                       <span className="text-[11px] px-1.5 py-[1px] rounded bg-elevated text-muted uppercase tracking-wide flex-shrink-0">
                         {model.id.split("/")[0]}
                       </span>
+                      {free && (
+                        <span className="text-[10px] px-1.5 py-[1px] rounded bg-green-500/15 text-green-400 font-semibold uppercase tracking-wide flex-shrink-0">
+                          free
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center gap-3 text-[11px] text-muted font-mono">
-                      <span>${promptPrice}/1M in</span>
-                      <span>${completionPrice}/1M out</span>
+                      {free ? (
+                        <span className="text-green-400">Free</span>
+                      ) : (
+                        <>
+                          <span>${promptPrice}/1M in</span>
+                          <span>${completionPrice}/1M out</span>
+                        </>
+                      )}
                       <span>{(model.context_length / 1024).toFixed(0)}k ctx</span>
                     </div>
                   </div>

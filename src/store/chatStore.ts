@@ -117,7 +117,35 @@ export const useChatStore = create<ChatState>()(
 
       setFontSize: (size) => set({ fontSize: size }),
 
-      setModerator: (modelId) => set({ moderatorId: modelId }),
+      setModerator: (modelId) =>
+        set((state) => {
+          const prevId = state.moderatorId;
+          if (prevId === modelId) return state;
+
+          const findName = (id: string | null) =>
+            id ? state.availableModels.find((m) => m.id === id)?.name ?? id : null;
+
+          let text: string;
+          if (!modelId) {
+            text = `Moderator changed: ${findName(prevId)} → You (human)`;
+          } else if (!prevId) {
+            text = `Moderator assigned: ${findName(modelId)}`;
+          } else {
+            text = `Moderator changed: ${findName(prevId)} → ${findName(modelId)}`;
+          }
+
+          const notification: Message = {
+            id: uuidv4(),
+            role: "system",
+            content: text,
+            timestamp: Date.now(),
+          };
+
+          return {
+            moderatorId: modelId,
+            messages: [...state.messages, notification],
+          };
+        }),
 
       setPublicMode: (mode) => set({ publicMode: mode }),
 
@@ -145,9 +173,26 @@ export const useChatStore = create<ChatState>()(
               (m) => m.id !== modelId && !newFailed[m.id]
             );
             const newMod = candidates.length > 0
-              ? candidates[Math.floor(Math.random() * candidates.length)].id
+              ? candidates[Math.floor(Math.random() * candidates.length)]
               : null;
-            return { failedModels: newFailed, moderatorId: newMod };
+
+            const failedName = state.availableModels.find((m) => m.id === modelId)?.name ?? modelId;
+            const text = newMod
+              ? `Moderator auto-reassigned: ${failedName} (failed) → ${newMod.name}`
+              : `Moderator removed: ${failedName} failed, no candidates available`;
+
+            const notification: Message = {
+              id: uuidv4(),
+              role: "system",
+              content: text,
+              timestamp: Date.now(),
+            };
+
+            return {
+              failedModels: newFailed,
+              moderatorId: newMod?.id ?? null,
+              messages: [...state.messages, notification],
+            };
           }
           return { failedModels: newFailed };
         }),

@@ -19,6 +19,13 @@ export function ModelSelector() {
 
   const isAtLimit = activeModels.length >= maxActiveModels;
 
+  const activeIds = new Set(activeModels.map((m) => m.id));
+  const sortedModels = [...availableModels].sort((a, b) => {
+    const aActive = activeIds.has(a.id) ? 0 : 1;
+    const bActive = activeIds.has(b.id) ? 0 : 1;
+    return aActive - bActive;
+  });
+
   return (
     <div>
       <div className="flex items-center justify-between px-2 mb-2">
@@ -38,8 +45,10 @@ export function ModelSelector() {
       </div>
 
       <div className="space-y-px">
-        {availableModels.map((model) => {
-          const isActive = activeModels.some((m) => m.id === model.id);
+        {sortedModels.map((model, index) => {
+          const isActive = activeIds.has(model.id);
+          const nextModel = sortedModels[index + 1];
+          const showSeparator = isActive && nextModel && !activeIds.has(nextModel.id);
           const isDefault = defaultModels.some((m) => m.id === model.id);
           const isModerator = model.id === moderatorId;
           const isFailed = !!failedModels[model.id];
@@ -69,10 +78,15 @@ export function ModelSelector() {
                   style={{ backgroundColor: isFailed ? "#ef4444" : model.color }}
                 />
                 <div className="flex-1 min-w-0">
-                  <div className={`text-[14px] font-normal truncate leading-tight ${
+                  <div className={`text-[14px] font-normal truncate leading-tight flex items-center gap-1.5 ${
                     isFailed ? "text-red-400/80" : "text-foreground/90"
                   }`}>
-                    {model.name}
+                    <span className="truncate">{model.name}</span>
+                    {model.pricing && parseFloat(model.pricing.prompt) === 0 && parseFloat(model.pricing.completion) === 0 && (
+                      <span className="text-[9px] px-1 py-[0.5px] rounded bg-green-500/15 text-green-400 font-semibold uppercase tracking-wide flex-shrink-0">
+                        free
+                      </span>
+                    )}
                   </div>
                 </div>
                 {isFailed && (
@@ -144,6 +158,9 @@ export function ModelSelector() {
                 >
                   ✕
                 </button>
+              )}
+              {showSeparator && (
+                <div className="h-px bg-separator mx-2 my-1.5" />
               )}
             </div>
           );
