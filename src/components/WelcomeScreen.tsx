@@ -128,7 +128,7 @@ export function WelcomeScreen() {
           </a>
           <span className="text-muted/30">|</span>
           <a
-            href="https://github.com/nickcheranev/llm-grpchat"
+            href="https://github.com/Lexus2016/Agent-Debate-Consensus"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 hover:text-foreground transition-colors duration-150"
