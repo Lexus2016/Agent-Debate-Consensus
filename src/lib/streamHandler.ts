@@ -1,5 +1,5 @@
 interface StreamCallbacks {
-  onToken: (token: string) => void;
+  onToken: (content: string, reasoning?: string) => void;
   onComplete: () => void;
   onError: (error: Error) => void;
 }
@@ -73,8 +73,9 @@ export async function streamModelResponse(
       buffer = lines.pop() || "";
 
       for (const line of lines) {
-        if (line.startsWith("data: ")) {
-          const data = line.slice(6).trim();
+        const trimmedLine = line.trim();
+        if (trimmedLine.startsWith("data: ")) {
+          const data = trimmedLine.slice(6).trim();
           if (data === "[DONE]") {
             activeControllers.delete(modelId);
             onComplete();
@@ -82,8 +83,8 @@ export async function streamModelResponse(
           }
           try {
             const parsed = JSON.parse(data);
-            if (parsed.content) {
-              onToken(parsed.content);
+            if (parsed.content || parsed.reasoning) {
+              onToken(parsed.content || "", parsed.reasoning || "");
             }
             if (parsed.error) {
               throw new Error(parsed.error);

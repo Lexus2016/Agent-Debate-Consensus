@@ -6,7 +6,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENROUTER_API_KEY!,
   defaultHeaders: {
     "HTTP-Referer": "http://localhost:3000",
-    "X-Title": "AI Group Chat",
+    "X-Title": "Agent Debate Consensus",
   },
 });
 
@@ -25,10 +25,13 @@ export async function POST(req: NextRequest) {
       async start(controller) {
         try {
           for await (const chunk of stream) {
-            const content = chunk.choices[0]?.delta?.content || "";
-            if (content) {
+            const delta = chunk.choices[0]?.delta as any;
+            const content = delta?.content || "";
+            const reasoning = delta?.reasoning_content || delta?.reasoning || "";
+            
+            if (content || reasoning) {
               controller.enqueue(
-                encoder.encode(`data: ${JSON.stringify({ content })}\n\n`)
+                encoder.encode(`data: ${JSON.stringify({ content, reasoning })}\n\n`)
               );
             }
           }
