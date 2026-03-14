@@ -71,6 +71,12 @@ export function ModelSelector() {
         </button>
       </div>
 
+      {activeModels.length === 0 && (
+        <p className="px-2 mb-2 text-[12px] text-primary font-medium leading-snug">
+          Click an agent to activate it
+        </p>
+      )}
+
       <div className="space-y-px">
         {sortedModels.map((model, index) => {
           const isActive = activeIds.has(model.id);
@@ -100,7 +106,9 @@ export function ModelSelector() {
                   }
                   toggleModel(model.id);
                 }}
-                className={`w-full flex items-center gap-2.5 px-2 py-[7px] rounded-lg text-left transition-all duration-150 ${
+                className={`w-full flex items-center gap-2.5 py-[7px] pr-2 rounded-lg text-left transition-all duration-150 ${
+                  isActive ? "pl-7" : "pl-2"
+                } ${
                   isActive
                     ? isFailed ? "bg-red-500/10" : "bg-elevated"
                     : isDisabledByLimit || isPaidBlocked ? "opacity-40 cursor-not-allowed" : "hover:bg-elevated"
@@ -155,27 +163,19 @@ export function ModelSelector() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
                 )}
-                {isModerator && !isFailed && (
-                  <span className="text-[10px] text-amber-400 flex-shrink-0" title="Moderator">
-                    &#9733;
-                  </span>
-                )}
-                {isActive && !isModerator && !isFailed && (
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
-                )}
               </button>
 
-              {/* Moderator toggle — visible on hover for active non-failed models */}
+              {/* Moderator toggle — star on the LEFT, always visible for active models */}
               {isActive && !isFailed && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setModerator(isModerator ? null : model.id);
                   }}
-                  className={`absolute right-7 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-md text-[10px] transition-all duration-150 ${
+                  className={`absolute left-1 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-md text-[10px] transition-all duration-150 ${
                     isModerator
-                      ? "text-amber-400 opacity-100"
-                      : "text-muted hover:text-amber-400 opacity-0 group-hover:opacity-100"
+                      ? "text-amber-400"
+                      : "text-muted/30 hover:text-amber-400"
                   }`}
                   title={isModerator ? "Remove as debate moderator (you will moderate)" : "Set as debate moderator"}
                 >

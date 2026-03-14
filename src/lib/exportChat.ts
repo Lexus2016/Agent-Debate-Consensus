@@ -1,6 +1,11 @@
-import { Message } from "@/types/chat";
+import { Message, Model } from "@/types/chat";
 
-export function messagesToMarkdown(messages: Message[]): string {
+interface ExportOptions {
+  activeModels?: Model[];
+  moderatorId?: string | null;
+}
+
+export function messagesToMarkdown(messages: Message[], options?: ExportOptions): string {
   const now = new Date();
   const dateStr = now.toLocaleDateString("en-US", {
     year: "numeric",
@@ -10,7 +15,21 @@ export function messagesToMarkdown(messages: Message[]): string {
     minute: "2-digit",
   });
 
-  let md = `# Agent Debate Consensus\n\n**Exported:** ${dateStr}\n\n---\n\n`;
+  let md = `# Agent Debate Consensus\n\n**Exported:** ${dateStr}\n\n`;
+
+  if (options?.activeModels && options.activeModels.length > 0) {
+    const moderator = options.moderatorId
+      ? options.activeModels.find((m) => m.id === options.moderatorId)
+      : null;
+    const participants = options.activeModels
+      .filter((m) => m.id !== options.moderatorId)
+      .map((m) => m.name);
+
+    md += `**Participants:** ${participants.join(", ")}\n`;
+    md += `**Moderator:** ${moderator ? moderator.name : "Human"}\n\n`;
+  }
+
+  md += `---\n\n`;
 
   for (const msg of messages) {
     const time = new Date(msg.timestamp).toLocaleTimeString("en-US", {

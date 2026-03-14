@@ -61,6 +61,21 @@ function highlightMentions(
             @User
           </span>
         );
+      } else if (mentionName.toLowerCase() === "all") {
+        parts.push(
+          inUserBubble ? (
+            <span
+              key={match.index}
+              className="inline-flex items-center font-semibold px-1.5 py-0.5 rounded-md text-white text-[0.9em] bg-primary/60"
+            >
+              @ALL
+            </span>
+          ) : (
+            <span key={match.index} className="font-semibold text-primary">
+              @ALL
+            </span>
+          )
+        );
       } else {
         parts.push(match[0]);
       }
