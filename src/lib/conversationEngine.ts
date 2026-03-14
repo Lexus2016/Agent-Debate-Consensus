@@ -20,9 +20,32 @@ export class ConversationEngine {
   private maxConcurrent = 1;
   private currentlyResponding = 0;
   private onTriggerResponse?: (modelId: string) => void;
+  private _roundComplete = false;
 
   setResponseHandler(handler: (modelId: string) => void) {
     this.onTriggerResponse = handler;
+  }
+
+  /**
+   * Mark the current round as complete. Clears all pending/queued responses.
+   * No further AI messages will be sent until startNewRound() is called.
+   */
+  markRoundComplete(): void {
+    this._roundComplete = true;
+    this.responseQueue = [];
+    this.pendingModels.clear();
+  }
+
+  /**
+   * Start a new round (called when user sends a message).
+   * Resets the roundComplete flag so AI models can respond again.
+   */
+  startNewRound(): void {
+    this._roundComplete = false;
+  }
+
+  get roundComplete(): boolean {
+    return this._roundComplete;
   }
 
   /**
@@ -64,6 +87,11 @@ export class ConversationEngine {
     moderatorId?: string | null,
     failedModelIds?: Set<string>
   ): ResponseDecision {
+    // ── Hard stop: round is complete, wait for user ──
+    if (this._roundComplete) {
+      return { shouldRespond: false, delay: 0, priority: 0 };
+    }
+
     // Don't respond to own messages
     if (latestMessage.modelId === model.id) {
       return { shouldRespond: false, delay: 0, priority: 0 };
@@ -184,15 +212,16 @@ export class ConversationEngine {
   }
 
   queueResponse(modelId: string, delay: number, priority: number): void {
-    // Don't queue if already queued or currently responding
-    if (this.pendingModels.has(modelId)) {
+    // Don't queue if round is complete, already queued, or currently responding
+    if (this._roundComplete || this.pendingModels.has(modelId)) {
       return;
     }
     this.pendingModels.add(modelId);
 
     setTimeout(() => {
-      // Double-check still pending (might have been cleared by stop)
-      if (!this.pendingModels.has(modelId)) {
+      // Bail if round ended or model was cleared while waiting
+      if (this._roundComplete || !this.pendingModels.has(modelId)) {
+        this.pendingModels.delete(modelId);
         return;
       }
 
@@ -217,6 +246,12 @@ export class ConversationEngine {
     this.currentlyResponding--;
     this.pendingModels.delete(modelId);
 
+    // Don't process queue if round is complete
+    if (this._roundComplete) {
+      this.responseQueue = [];
+      return;
+    }
+
     if (this.responseQueue.length > 0) {
       const next = this.responseQueue.shift()!;
       this.triggerResponse(next.modelId);
@@ -238,6 +273,7 @@ export class ConversationEngine {
     this.responseQueue = [];
     this.pendingModels.clear();
     this.currentlyResponding = 0;
+    this._roundComplete = false;
   }
 }
 

@@ -132,7 +132,7 @@ function ChatApp() {
         return;
       }
 
-      if (state.failedModels[modelId]) {
+      if (state.failedModels[modelId] || conversationEngine.roundComplete) {
         conversationEngine.completeResponse(modelId);
         return;
       }
@@ -181,7 +181,13 @@ function ChatApp() {
           conversationEngine.completeResponse(modelId);
           clearModelFailed(modelId);
 
+          // If the completing model is the moderator, mark round as complete
           const latestState = useChatStore.getState();
+          if (modelId === latestState.moderatorId) {
+            conversationEngine.markRoundComplete();
+            return;
+          }
+
           const latestMessage = latestState.messages.find(
             (m) => m.id === messageId
           );
@@ -206,8 +212,11 @@ function ChatApp() {
 
   const processModelResponses = useCallback(
     (latestMessage: Message) => {
+      if (conversationEngine.roundComplete) return;
+
       const state = useChatStore.getState();
       const failedModelIds = new Set(Object.keys(state.failedModels));
+      let anyQueued = false;
 
       for (const model of state.activeModels) {
         if (failedModelIds.has(model.id)) continue;
@@ -223,7 +232,14 @@ function ChatApp() {
 
         if (decision.shouldRespond) {
           conversationEngine.queueResponse(model.id, decision.delay, decision.priority);
+          anyQueued = true;
         }
+      }
+
+      // If no model wants to respond and we're past the initial user message,
+      // mark the round as complete (no-moderator case)
+      if (!anyQueued && latestMessage.role === "assistant") {
+        conversationEngine.markRoundComplete();
       }
     },
     []
@@ -232,6 +248,9 @@ function ChatApp() {
   const handleSendMessage = useCallback(
     (content: string) => {
       if (activeModels.length === 0) return;
+
+      // New user message starts a fresh round
+      conversationEngine.startNewRound();
 
       const messageId = addMessage({
         role: "user",
