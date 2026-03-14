@@ -1,9 +1,9 @@
 import { Model } from "@/types/chat";
 
 const modelColors = [
-  "#ef4444", // red
-  "#22c55e", // green
-  "#f97316", // orange
+  "#f43f5e", // rose
+  "#10b981", // emerald
+  "#f59e0b", // amber
   "#3b82f6", // blue
 ];
 

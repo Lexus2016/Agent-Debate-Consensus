@@ -5,12 +5,19 @@ export interface Model {
   provider: string;
   color: string;
   isActive: boolean;
+  pricing?: {
+    prompt: string;
+    completion: string;
+  };
+  description?: string;
+  context_length?: number;
 }
 
 export interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
+  reasoning?: string;
   modelId?: string;
   modelName?: string;
   timestamp: number;
@@ -30,10 +37,12 @@ export interface ChatState {
   contextWindowSize: number;
 
   addMessage: (message: Omit<Message, "id" | "timestamp">) => string;
-  updateMessage: (id: string, content: string) => void;
+  updateMessage: (id: string, content: string, reasoning?: string) => void;
   completeMessage: (id: string) => void;
   setTyping: (modelId: string, modelName: string, isTyping: boolean) => void;
   toggleModel: (modelId: string) => void;
+  addAvailableModel: (model: Model) => void;
+  removeModel: (modelId: string) => void;
   setContextWindowSize: (size: number) => void;
   clearChat: () => void;
   initializeModels: (models: Model[]) => void;
