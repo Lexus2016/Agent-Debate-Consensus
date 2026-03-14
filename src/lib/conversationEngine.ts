@@ -17,6 +17,7 @@ export class ConversationEngine {
   private cooldowns: Map<string, number> = new Map();
   private responseQueue: Array<{ modelId: string; priority: number }> = [];
   private pendingModels: Set<string> = new Set();
+  private respondedThisRound: Set<string> = new Set();
   private maxConcurrent = 1;
   private currentlyResponding = 0;
   private onTriggerResponse?: (modelId: string) => void;
@@ -42,10 +43,16 @@ export class ConversationEngine {
    */
   startNewRound(): void {
     this._roundComplete = false;
+    this.respondedThisRound.clear();
   }
 
   get roundComplete(): boolean {
     return this._roundComplete;
+  }
+
+  /** True if any models are still queued, pending, or currently responding. */
+  get hasPendingWork(): boolean {
+    return this.pendingModels.size > 0 || this.responseQueue.length > 0 || this.currentlyResponding > 0;
   }
 
   /**
@@ -104,13 +111,18 @@ export class ConversationEngine {
 
     const isModerator = model.id === moderatorId;
 
-    let priority = 0;
-    let shouldRespond = false;
-
-    // Highest priority: @mentioned — BYPASSES COOLDOWN and per-model limit
+    // Check @mention first (bypasses all limits including per-round tracking)
     const escaped = escapeRegex(model.shortName.toLowerCase());
     const mentionPattern = new RegExp(`@${escaped}\\b`, "i");
     const isMentioned = mentionPattern.test(latestMessage.content);
+
+    // Already responded this round — only @mentions can override
+    if (this.respondedThisRound.has(model.id) && !isMentioned) {
+      return { shouldRespond: false, delay: 0, priority: 0 };
+    }
+
+    let priority = 0;
+    let shouldRespond = false;
 
     if (isMentioned) {
       shouldRespond = true;
@@ -145,10 +157,10 @@ export class ConversationEngine {
 
     // ── Total AI round cap ──
     // With moderator: all non-mods respond once + 1 moderator summary
-    // Without moderator: all models respond + limited rebuttals
+    // Without moderator: each model responds once (rebuttals via @mentions only)
     const maxTotalRounds = moderatorId
       ? nonModeratorCount + MAX_MODERATOR_ROUNDS
-      : activeModels.length + 2;
+      : activeModels.length;
 
     if (!isMentioned && aiRounds >= maxTotalRounds) {
       return { shouldRespond: false, delay: 0, priority: 0 };
@@ -243,6 +255,7 @@ export class ConversationEngine {
 
   completeResponse(modelId: string): void {
     this.cooldowns.set(modelId, Date.now());
+    this.respondedThisRound.add(modelId);
     this.currentlyResponding--;
     this.pendingModels.delete(modelId);
 
@@ -272,6 +285,7 @@ export class ConversationEngine {
     this.cooldowns.clear();
     this.responseQueue = [];
     this.pendingModels.clear();
+    this.respondedThisRound.clear();
     this.currentlyResponding = 0;
     this._roundComplete = false;
   }
@@ -338,7 +352,7 @@ export function buildContextWindow(
   messages: Message[],
   windowSize: number,
   model: Model
-): { role: "user" | "assistant" | "system"; content: string }[] {
+): { role: "user" | "assistant"; content: string }[] {
   const recentMessages = messages.slice(-windowSize);
   const windowStartIdx = messages.length - windowSize;
 

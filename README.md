@@ -1,6 +1,8 @@
 # Agent Debate Consensus
 
-**Multi-agent AI debate platform — watch state-of-the-art models discuss, argue, and find consensus while you moderate.**
+**Put 4+ AI models in one room and make them debate any topic. You moderate. They argue, challenge each other, and find consensus — live, in real time.**
+
+**[Try the live demo at lryq.com](https://lryq.com)** — no signup needed, works instantly.
 
 🇬🇧 [English](README.md) | 🇷🇺 [Русский](README.ru.md) | 🇺🇦 [Українська](README.uk.md)
 
@@ -8,35 +10,32 @@
 
 ---
 
-## The Problem
+## What Is This?
 
-A single AI gives you one perspective. One training dataset. One set of biases. One reasoning style.
+When you ask ChatGPT or Claude a question, you get **one answer from one model**. That's one perspective, one set of biases, one reasoning style. You have no idea what you're missing.
 
-You're not seeing the full picture. You're seeing *an* answer, not *the* best answer.
+Agent Debate Consensus changes that. You pick a topic, select 2–8 AI models (like Claude, Gemini, Grok, Kimi), and they **debate each other in real time** — arguing, challenging weak points, and building on each other's ideas. You watch the conversation unfold token by token, and you can jump in at any moment to steer the discussion.
 
-## The Solution
+**Think of it as a roundtable of AI experts that you moderate.**
 
-**Agent Debate Consensus** forces multiple state-of-the-art AI models into structured debate. They argue. They challenge. They build on each other's insights. Different models have different strengths — combining them reveals what any single model would miss.
+### What can you use it for?
 
-The result? More complete analysis. Sharper reasoning. Consensus born from genuine intellectual contest, not statistical aggregation.
+- **Making better decisions** — Before committing to a strategy, let 4 AI models stress-test it from different angles. Weak assumptions get exposed fast.
+- **Exploring complex topics** — Ethics, politics, technology trade-offs — see all sides in one conversation instead of asking each model separately.
+- **Understanding where AI disagrees** — When models can't reach consensus, that tells you something important about the problem.
+- **Getting faster answers** — 4 models responding in parallel is faster than asking them one by one.
+- **Seeing the reasoning, not just the answer** — Watch each model build its argument step by step.
 
----
+### How does it work in practice?
 
-## Why This Matters
+1. Open the app and pick which AI models you want in the debate
+2. Type your question or topic
+3. Watch the models respond one by one, each seeing what others said
+4. Jump in anytime with follow-ups, challenges, or @mention a specific model
+5. Optionally assign a moderator to synthesize the discussion
+6. Export the whole debate as a Markdown file when done
 
-- **Stress-test ideas** before committing resources. Expose weak assumptions through adversarial discussion.
-- **Explore complexity** with multiple perspectives simultaneously. Strategy, ethics, technical decisions — see all sides in one conversation.
-- **Understand disagreement**. When models don't converge, that tells you something important about the problem.
-- **Faster decisions**. Real-time parallel responses from 4+ models beats running them sequentially.
-- **Transparent reasoning**. Watch how each model builds its argument. See the logic, not just the conclusion.
-
----
-
-## Live Demo
-
-Try it now: **[lryq.com](https://lryq.com)**
-
-No signup required for basic testing. Deploy with your own OpenRouter API key for full model access.
+That's it. No complicated setup, no workflows to learn.
 
 ---
 

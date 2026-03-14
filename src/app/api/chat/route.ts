@@ -27,13 +27,52 @@ export async function POST(req: NextRequest) {
   });
 
   try {
-    const { messages, model, temperature } = await req.json();
+    const body = await req.json();
+    const { messages, model, temperature } = body;
+
+    // Input validation
+    if (!model || typeof model !== "string") {
+      return new Response(
+        JSON.stringify({ error: "Invalid or missing 'model' parameter" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!Array.isArray(messages) || messages.length === 0 || messages.length > 200) {
+      return new Response(
+        JSON.stringify({ error: "Invalid 'messages': must be a non-empty array (max 200)" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    const validRoles = new Set(["system", "user", "assistant"]);
+    const messagesValid = messages.every(
+      (m: unknown) =>
+        typeof m === "object" && m !== null &&
+        typeof (m as Record<string, unknown>).role === "string" &&
+        validRoles.has((m as Record<string, unknown>).role as string) &&
+        typeof (m as Record<string, unknown>).content === "string"
+    );
+    if (!messagesValid) {
+      return new Response(
+        JSON.stringify({ error: "Each message must have a valid 'role' and 'content' string" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    const temp = temperature ?? 0.7;
+    if (typeof temp !== "number" || temp < 0 || temp > 2) {
+      return new Response(
+        JSON.stringify({ error: "Temperature must be a number between 0 and 2" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
 
     const stream = await openai.chat.completions.create({
-      model: model,
-      messages: messages,
+      model,
+      messages,
       stream: true,
-      temperature: temperature ?? 0.7,
+      temperature: temp,
     });
 
     const encoder = new TextEncoder();

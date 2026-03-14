@@ -115,13 +115,15 @@ function ChatApp() {
   const handleStop = useCallback(() => {
     stopAllStreams();
     conversationEngine.reset();
-    typingModels.forEach((t) => setTyping(t.modelId, t.modelName, false));
-    messages.forEach((m) => {
+    // Read fresh state to avoid stale closure values
+    const currentState = useChatStore.getState();
+    currentState.typingModels.forEach((t) => setTyping(t.modelId, t.modelName, false));
+    currentState.messages.forEach((m) => {
       if (m.isStreaming) {
         completeMessage(m.id);
       }
     });
-  }, [typingModels, messages, setTyping, completeMessage]);
+  }, [setTyping, completeMessage]);
 
   const triggerModelResponse = useCallback(
     async (modelId: string) => {
@@ -178,13 +180,19 @@ function ChatApp() {
           }
 
           completeMessage(messageId);
+
+          // If the completing model is the moderator, mark round complete
+          // BEFORE completeResponse to prevent the queue from triggering more models
+          const latestState = useChatStore.getState();
+          const isModerator = modelId === latestState.moderatorId;
+          if (isModerator) {
+            conversationEngine.markRoundComplete();
+          }
+
           conversationEngine.completeResponse(modelId);
           clearModelFailed(modelId);
 
-          // If the completing model is the moderator, mark round as complete
-          const latestState = useChatStore.getState();
-          if (modelId === latestState.moderatorId) {
-            conversationEngine.markRoundComplete();
+          if (isModerator) {
             return;
           }
 
@@ -236,9 +244,9 @@ function ChatApp() {
         }
       }
 
-      // If no model wants to respond and we're past the initial user message,
-      // mark the round as complete (no-moderator case)
-      if (!anyQueued && latestMessage.role === "assistant") {
+      // Only mark round complete when no model wants to respond AND
+      // no models are still queued/responding from the original user message
+      if (!anyQueued && latestMessage.role === "assistant" && !conversationEngine.hasPendingWork) {
         conversationEngine.markRoundComplete();
       }
     },
