@@ -14,6 +14,8 @@ interface ResponseDecision {
 const MAX_DISCUSSION_PER_MODEL = 5; // Each model can give up to 5 discussion responses per round
 const MAX_TOTAL_DISCUSSION = 8; // Total discussion messages across ALL models per round
 export const MAX_MODERATOR_ROUNDS = 3; // AI moderator can intervene up to 3 times (cycle: discussion → summary)
+const RETRY_DELAYS = [5000, 15000, 30000]; // Delays between retry attempts
+export const MAX_RETRIES = RETRY_DELAYS.length;
 
 function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -29,10 +31,12 @@ export class ConversationEngine {
   private _moderatorSettleCount = 0; // Times moderator was triggered by settle (summary/moderation)
   private maxConcurrent = 1;
   private currentlyResponding = 0;
-  private onTriggerResponse?: (modelId: string) => void;
+  private onTriggerResponse?: (modelId: string, priority: number) => void;
   private _roundComplete = false;
+  private retryingModels: Set<string> = new Set();
+  private retryAttempts: Map<string, { attempts: number; priority: number; timerId: ReturnType<typeof setTimeout> }> = new Map();
 
-  setResponseHandler(handler: (modelId: string) => void) {
+  setResponseHandler(handler: (modelId: string, priority: number) => void) {
     this.onTriggerResponse = handler;
   }
 
@@ -44,6 +48,11 @@ export class ConversationEngine {
     this._roundComplete = true;
     this.responseQueue = [];
     this.pendingModels.clear();
+    for (const [, entry] of this.retryAttempts) {
+      clearTimeout(entry.timerId);
+    }
+    this.retryAttempts.clear();
+    this.retryingModels.clear();
   }
 
   /**
@@ -59,6 +68,11 @@ export class ConversationEngine {
     // Cancel any pending/queued responses from the previous round
     this.responseQueue = [];
     this.pendingModels.clear();
+    for (const [, entry] of this.retryAttempts) {
+      clearTimeout(entry.timerId);
+    }
+    this.retryAttempts.clear();
+    this.retryingModels.clear();
   }
 
   get roundComplete(): boolean {
@@ -70,7 +84,8 @@ export class ConversationEngine {
     return (
       this.pendingModels.size > 0 ||
       this.responseQueue.length > 0 ||
-      this.currentlyResponding > 0
+      this.currentlyResponding > 0 ||
+      this.retryingModels.size > 0
     );
   }
 
@@ -146,6 +161,11 @@ export class ConversationEngine {
 
     // Skip failed models
     if (failedModelIds?.has(model.id)) {
+      return { shouldRespond: false, delay: 0, priority: 0 };
+    }
+
+    // Skip models that are currently retrying
+    if (this.retryingModels.has(model.id)) {
       return { shouldRespond: false, delay: 0, priority: 0 };
     }
 
@@ -228,8 +248,8 @@ export class ConversationEngine {
   }
 
   queueResponse(modelId: string, delay: number, priority: number): void {
-    // Don't queue if round is complete, already queued, or currently responding
-    if (this._roundComplete || this.pendingModels.has(modelId)) {
+    // Don't queue if round is complete, already queued, retrying, or currently responding
+    if (this._roundComplete || this.pendingModels.has(modelId) || this.retryingModels.has(modelId)) {
       return;
     }
     this.pendingModels.add(modelId);
@@ -242,7 +262,7 @@ export class ConversationEngine {
       }
 
       if (this.currentlyResponding < this.maxConcurrent) {
-        this.triggerResponse(modelId);
+        this.triggerResponse(modelId, priority);
       } else {
         // Insert in priority order (higher priority first)
         const insertIndex = this.responseQueue.findIndex(
@@ -277,13 +297,83 @@ export class ConversationEngine {
 
     if (this.responseQueue.length > 0) {
       const next = this.responseQueue.shift()!;
-      this.triggerResponse(next.modelId);
+      this.triggerResponse(next.modelId, next.priority);
     }
   }
 
-  private triggerResponse(modelId: string): void {
+  private triggerResponse(modelId: string, priority: number): void {
     this.currentlyResponding++;
-    this.onTriggerResponse?.(modelId);
+    this.onTriggerResponse?.(modelId, priority);
+  }
+
+  /**
+   * Release concurrency slot without marking the model as responded.
+   * Used when a model fails and will retry — allows other models to proceed.
+   */
+  releaseSlot(modelId: string): void {
+    this.currentlyResponding = Math.max(0, this.currentlyResponding - 1);
+    this.pendingModels.delete(modelId);
+
+    if (this._roundComplete) {
+      this.responseQueue = [];
+      return;
+    }
+
+    if (this.responseQueue.length > 0) {
+      const next = this.responseQueue.shift()!;
+      this.triggerResponse(next.modelId, next.priority);
+    }
+  }
+
+  /**
+   * Schedule a background retry for a failed model. Returns true if retry was scheduled,
+   * false if all retries are exhausted. Other models continue while the retry timer runs.
+   */
+  scheduleRetry(modelId: string, priority: number): boolean {
+    const existing = this.retryAttempts.get(modelId);
+    if (existing) {
+      clearTimeout(existing.timerId);
+    }
+    const attempt = existing ? existing.attempts + 1 : 1;
+
+    if (attempt > RETRY_DELAYS.length) {
+      this.retryAttempts.delete(modelId);
+      this.retryingModels.delete(modelId);
+      return false;
+    }
+
+    this.retryingModels.add(modelId);
+    const timerId = setTimeout(() => {
+      this.retryingModels.delete(modelId);
+      if (this._roundComplete) {
+        this.retryAttempts.delete(modelId);
+        return;
+      }
+      this.queueResponse(modelId, 0, priority);
+    }, RETRY_DELAYS[attempt - 1]);
+
+    this.retryAttempts.set(modelId, { attempts: attempt, priority, timerId });
+    return true;
+  }
+
+  /** Clear retry state for a model (call on success or empty response). */
+  clearRetry(modelId: string): void {
+    const entry = this.retryAttempts.get(modelId);
+    if (entry) {
+      clearTimeout(entry.timerId);
+      this.retryAttempts.delete(modelId);
+    }
+    this.retryingModels.delete(modelId);
+  }
+
+  /** Check if a model is currently waiting for retry. */
+  isRetrying(modelId: string): boolean {
+    return this.retryingModels.has(modelId);
+  }
+
+  /** Get the current retry attempt number for a model (0 if not retrying). */
+  getRetryAttempt(modelId: string): number {
+    return this.retryAttempts.get(modelId)?.attempts ?? 0;
   }
 
   isOnCooldown(modelId: string): boolean {
@@ -301,6 +391,11 @@ export class ConversationEngine {
     this._moderatorSettleCount = 0;
     this.currentlyResponding = 0;
     this._roundComplete = false;
+    for (const [, entry] of this.retryAttempts) {
+      clearTimeout(entry.timerId);
+    }
+    this.retryAttempts.clear();
+    this.retryingModels.clear();
   }
 }
 

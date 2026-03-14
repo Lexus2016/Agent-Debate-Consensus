@@ -8,6 +8,7 @@ import {
   buildSummaryPrompt,
   buildContextWindow,
   MAX_MODERATOR_ROUNDS,
+  MAX_RETRIES,
 } from "@/lib/conversationEngine";
 import { streamModelResponse, stopAllStreams } from "@/lib/streamHandler";
 import { messagesToMarkdown, downloadMarkdown } from "@/lib/exportChat";
@@ -158,19 +159,22 @@ function ChatApp() {
     if (lastAssistantMsg) {
       processModelResponses(lastAssistantMsg);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const triggerModelResponse = useCallback(
-    async (modelId: string) => {
+    async (modelId: string, priority: number) => {
       const state = useChatStore.getState();
       const model = state.activeModels.find((m) => m.id === modelId);
       if (!model) {
         conversationEngine.completeResponse(modelId);
+        conversationEngine.clearRetry(modelId);
         return;
       }
 
       if (state.failedModels[modelId] || conversationEngine.roundComplete) {
         conversationEngine.completeResponse(modelId);
+        conversationEngine.clearRetry(modelId);
         return;
       }
 
@@ -191,119 +195,102 @@ function ChatApp() {
       ];
 
       const streamOptions = { temperature: TEMP_MAP[state.temperature], webSearch: state.webSearchEnabled };
-      const RETRY_DELAYS = [5000, 15000, 30000];
 
-      for (let attempt = 0; attempt <= RETRY_DELAYS.length; attempt++) {
-        // Wait before retry (skip for first attempt)
-        if (attempt > 0) {
+      const messageId = addMessage({
+        role: "assistant",
+        content: "",
+        modelId: model.id,
+        modelName: model.name,
+        isStreaming: true,
+      });
+
+      const result = await new Promise<{ content: string; reasoning: string; error?: Error }>((resolve) => {
+        let content = "";
+        let reasoning = "";
+        streamModelResponse(modelId, apiMessages, {
+          onToken: (token, reasoningToken) => {
+            if (token) content += token;
+            if (reasoningToken) reasoning += reasoningToken;
+            updateMessage(messageId, content, reasoning);
+          },
+          onComplete: () => resolve({ content, reasoning }),
+          onError: (error) => resolve({ content: "", reasoning: "", error }),
+        }, streamOptions);
+      });
+
+      // ── Error: release slot for other models, schedule background retry ──
+      if (result.error) {
+        removeMessage(messageId);
+        conversationEngine.releaseSlot(modelId);
+
+        const scheduled = conversationEngine.scheduleRetry(modelId, priority);
+        if (scheduled) {
           addMessage({
             role: "system",
-            content: `${model.name}: error, retrying (${attempt}/${RETRY_DELAYS.length})...`,
+            content: `${model.name}: error, retrying (${conversationEngine.getRetryAttempt(modelId)}/${MAX_RETRIES})...`,
           });
-
-          await new Promise<void>((r) => setTimeout(r, RETRY_DELAYS[attempt - 1]));
-
-          // Bail if round was cancelled during wait
-          if (conversationEngine.roundComplete) {
-            conversationEngine.completeResponse(modelId);
-            return;
-          }
-        }
-
-        const messageId = addMessage({
-          role: "assistant",
-          content: "",
-          modelId: model.id,
-          modelName: model.name,
-          isStreaming: true,
-        });
-
-        // Attempt streaming — wrap callbacks in a promise for retry control
-        const result = await new Promise<{ content: string; reasoning: string; error?: Error }>((resolve) => {
-          let content = "";
-          let reasoning = "";
-          streamModelResponse(modelId, apiMessages, {
-            onToken: (token, reasoningToken) => {
-              if (token) content += token;
-              if (reasoningToken) reasoning += reasoningToken;
-              updateMessage(messageId, content, reasoning);
-            },
-            onComplete: () => resolve({ content, reasoning }),
-            onError: (error) => resolve({ content: "", reasoning: "", error }),
-          }, streamOptions);
-        });
-
-        // ── Error: retry or give up ──
-        if (result.error) {
-          removeMessage(messageId);
-
-          if (attempt < RETRY_DELAYS.length) {
-            continue; // Will retry after delay
-          }
-
-          // All retries exhausted
-          console.error(`${model.name} failed after ${RETRY_DELAYS.length} retries:`, result.error);
+        } else {
+          console.error(`${model.name} failed after ${MAX_RETRIES} retries:`, result.error);
           addMessage({
             role: "system",
-            content: `${model.name}: failed after ${RETRY_DELAYS.length} retries — ${result.error.message}`,
+            content: `${model.name}: failed after ${MAX_RETRIES} retries — ${result.error.message}`,
           });
-          conversationEngine.completeResponse(modelId);
           markModelFailed(modelId, result.error.message);
-          // Check if discussion settled — triggers new moderator if old one was reassigned
           checkSettled();
-          return;
         }
+        return;
+      }
 
-        // ── Empty response ──
-        if (!result.content) {
-          removeMessage(messageId);
-          const isDiscussion = conversationEngine.hasResponded(modelId);
-          conversationEngine.completeResponse(modelId, isDiscussion);
-          // Check if discussion settled and moderator/summarizer should be triggered
-          checkSettled();
-          return;
-        }
-
-        // ── Success ──
-        completeMessage(messageId);
-
-        const latestState = useChatStore.getState();
-        const isMod = modelId === latestState.moderatorId;
-        const isSum = modelId === conversationEngine.summarizerModelId;
-
+      // ── Empty response ──
+      if (!result.content) {
+        removeMessage(messageId);
         const isDiscussion = conversationEngine.hasResponded(modelId);
         conversationEngine.completeResponse(modelId, isDiscussion);
-        clearModelFailed(modelId);
+        conversationEngine.clearRetry(modelId);
+        checkSettled();
+        return;
+      }
 
-        // Summarizer (random model when no moderator) → round over
-        if (isSum) {
-          conversationEngine.markRoundComplete();
-          return;
-        }
+      // ── Success ──
+      completeMessage(messageId);
+      conversationEngine.clearRetry(modelId);
 
-        const latestMessage = latestState.messages.find(
-          (m) => m.id === messageId
-        );
+      const latestState = useChatStore.getState();
+      const isMod = modelId === latestState.moderatorId;
+      const isSum = modelId === conversationEngine.summarizerModelId;
 
-        if (isMod) {
-          // Moderator spoke — check if it @mentioned anyone for further discussion
-          if (latestMessage) {
-            processModelResponses(latestMessage);
-          }
-          // If no models were queued → moderator concluded, round over
-          if (!conversationEngine.hasPendingWork) {
-            conversationEngine.markRoundComplete();
-          }
-          return;
-        }
+      const isDiscussion = conversationEngine.hasResponded(modelId);
+      conversationEngine.completeResponse(modelId, isDiscussion);
+      clearModelFailed(modelId);
 
-        // Non-moderator: process responses (scan for @mentions, trigger discussion)
+      // Summarizer (random model when no moderator) → round over
+      if (isSum) {
+        conversationEngine.markRoundComplete();
+        return;
+      }
+
+      const latestMessage = latestState.messages.find(
+        (m) => m.id === messageId
+      );
+
+      if (isMod) {
+        // Moderator spoke — check if it @mentioned anyone for further discussion
         if (latestMessage) {
           processModelResponses(latestMessage);
         }
-        return; // Success — exit retry loop
+        // If no models were queued → moderator concluded, round over
+        if (!conversationEngine.hasPendingWork) {
+          conversationEngine.markRoundComplete();
+        }
+        return;
+      }
+
+      // Non-moderator: process responses (scan for @mentions, trigger discussion)
+      if (latestMessage) {
+        processModelResponses(latestMessage);
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [addMessage, updateMessage, completeMessage, removeMessage, setTyping, contextWindowSize, markModelFailed, clearModelFailed]
   );
 
