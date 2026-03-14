@@ -53,16 +53,15 @@ export function ChatInput({ onSend, onStop, disabled, isGenerating }: Props) {
             }
             disabled={disabled}
             rows={1}
-            className="w-full bg-surface-light rounded-[14px] border border-white/[0.06] px-4 py-[10px] text-[14px] leading-[1.5] resize-none focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/20 disabled:opacity-30 disabled:cursor-not-allowed placeholder:text-muted/60 transition-all duration-150"
+            className="w-full bg-surface-light rounded-[14px] border border-separator px-4 py-[10px] text-[14px] leading-[1.5] resize-none focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/20 disabled:opacity-30 disabled:cursor-not-allowed placeholder:text-muted/60 transition-all duration-150"
           />
         </div>
 
-        {/* Stop — only during generation */}
         {isGenerating && (
           <button
             onClick={onStop}
             title="Stop generation"
-            className="flex-shrink-0 w-[34px] h-[34px] flex items-center justify-center rounded-full bg-surface-light border border-white/[0.06] text-muted hover:text-foreground hover:bg-surface-hover transition-colors duration-150"
+            className="flex-shrink-0 w-[34px] h-[34px] flex items-center justify-center rounded-full bg-surface-light border border-separator text-muted hover:text-foreground hover:bg-surface-hover transition-colors duration-150"
           >
             <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
               <rect x="6" y="6" width="12" height="12" rx="2" />
@@ -70,7 +69,6 @@ export function ChatInput({ onSend, onStop, disabled, isGenerating }: Props) {
           </button>
         )}
 
-        {/* Send — always visible */}
         <button
           onClick={handleSubmit}
           disabled={!input.trim() || disabled}

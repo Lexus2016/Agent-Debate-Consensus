@@ -25,6 +25,8 @@ export function ChatContainer() {
   const contextWindowSize = useChatStore((state) => state.contextWindowSize);
   const clearChat = useChatStore((state) => state.clearChat);
   const messages = useChatStore((state) => state.messages);
+  const theme = useChatStore((state) => state.theme);
+  const setTheme = useChatStore((state) => state.setTheme);
 
   const isGenerating = typingModels.length > 0 || messages.some((m) => m.isStreaming);
 
@@ -152,15 +154,32 @@ export function ChatContainer() {
   return (
     <div className="h-screen flex overflow-hidden">
       {/* macOS-style sidebar */}
-      <div className="w-[260px] flex-shrink-0 vibrancy border-r border-white/[0.06] flex flex-col">
+      <div className="w-[260px] flex-shrink-0 vibrancy border-r border-separator flex flex-col">
         {/* App header */}
-        <div className="h-[52px] flex items-center gap-2.5 px-4 border-b border-white/[0.06]">
+        <div className="h-[52px] flex items-center gap-2.5 px-4 border-b border-separator">
           <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-primary-hover flex items-center justify-center flex-shrink-0">
             <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
-          <span className="text-[13px] font-semibold tracking-[-0.01em]">Agent Debate</span>
+          <span className="text-[13px] font-semibold tracking-[-0.01em] flex-1">Agent Debate</span>
+
+          {/* Theme toggle */}
+          <button
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-foreground hover:bg-elevated transition-colors duration-150"
+            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {theme === "dark" ? (
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            ) : (
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
+            )}
+          </button>
         </div>
 
         {/* Participants */}
@@ -177,7 +196,7 @@ export function ChatContainer() {
         </div>
 
         {/* Bottom toolbar */}
-        <div className="px-3 py-3 border-t border-white/[0.06] flex gap-1.5">
+        <div className="px-3 py-3 border-t border-separator flex gap-1.5">
           {messages.length > 0 && (
             <button
               onClick={() => {
@@ -185,7 +204,7 @@ export function ChatContainer() {
                 const date = new Date().toISOString().split("T")[0];
                 downloadMarkdown(md, `debate-${date}.md`);
               }}
-              className="flex-1 flex items-center justify-center gap-1.5 h-[30px] text-[12px] text-muted hover:text-foreground rounded-lg hover:bg-white/[0.05] transition-colors duration-150"
+              className="flex-1 flex items-center justify-center gap-1.5 h-[30px] text-[12px] text-muted hover:text-foreground rounded-lg hover:bg-elevated transition-colors duration-150"
               title="Export debate as Markdown"
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -199,7 +218,7 @@ export function ChatContainer() {
               clearChat();
               conversationEngine.reset();
             }}
-            className="flex-1 flex items-center justify-center gap-1.5 h-[30px] text-[12px] text-muted hover:text-foreground rounded-lg hover:bg-white/[0.05] transition-colors duration-150"
+            className="flex-1 flex items-center justify-center gap-1.5 h-[30px] text-[12px] text-muted hover:text-foreground rounded-lg hover:bg-elevated transition-colors duration-150"
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />

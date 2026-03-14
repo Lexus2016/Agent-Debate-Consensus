@@ -13,6 +13,26 @@
   --color-muted: #98989d;
   --color-border: #38383a;
   --color-accent: #0a84ff;
+  --color-separator: rgba(255, 255, 255, 0.06);
+  --color-elevated: rgba(255, 255, 255, 0.05);
+}
+
+/* Light theme overrides */
+[data-theme="light"] {
+  --color-background: #ffffff;
+  --color-foreground: #1c1c1e;
+  --color-primary: #bf5af2;
+  --color-primary-hover: #a84ad6;
+  --color-primary-light: #9d4edd;
+  --color-surface: #f2f2f7;
+  --color-surface-light: #e5e5ea;
+  --color-surface-hover: #d1d1d6;
+  --color-surface-dark: #f2f2f7;
+  --color-muted: #8e8e93;
+  --color-border: #c6c6c8;
+  --color-accent: #007aff;
+  --color-separator: rgba(0, 0, 0, 0.08);
+  --color-elevated: rgba(0, 0, 0, 0.03);
 }
 
 body {
@@ -27,38 +47,56 @@ body {
   background: rgba(191, 90, 242, 0.3);
 }
 
-/* macOS-native scrollbar */
+[data-theme="light"] ::selection {
+  background: rgba(191, 90, 242, 0.2);
+}
+
+/* Scrollbar — dark */
 * {
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
 }
 
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 4px;
   border: 2px solid transparent;
   background-clip: content-box;
 }
-
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
   border: 2px solid transparent;
   background-clip: content-box;
 }
 
-/* macOS sidebar vibrancy */
+/* Scrollbar — light */
+[data-theme="light"] * {
+  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.22);
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+/* Sidebar vibrancy — dark */
 .vibrancy {
   background: rgba(28, 28, 30, 0.78);
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
+}
+
+/* Sidebar vibrancy — light */
+[data-theme="light"] .vibrancy {
+  background: rgba(242, 242, 247, 0.82);
 }
 
 .gradient-text {
@@ -73,16 +111,12 @@ body {
   0%, 50% { opacity: 1; }
   51%, 100% { opacity: 0; }
 }
-
-.animate-blink {
-  animation: blink 1s step-end infinite;
-}
+.animate-blink { animation: blink 1s step-end infinite; }
 
 @keyframes bounce-dot {
   0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
   40% { transform: translateY(-3px); opacity: 1; }
 }
-
 .animate-bounce-dot { animation: bounce-dot 1.4s infinite ease-in-out; }
 .animate-bounce-dot-delay-1 { animation: bounce-dot 1.4s infinite ease-in-out 0.16s; }
 .animate-bounce-dot-delay-2 { animation: bounce-dot 1.4s infinite ease-in-out 0.32s; }
@@ -91,16 +125,10 @@ body {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
-.animate-fade-in {
-  animation: fade-in 0.2s ease-out forwards;
-}
+.animate-fade-in { animation: fade-in 0.2s ease-out forwards; }
 
 @keyframes modal-in {
   from { opacity: 0; transform: scale(0.97) translateY(6px); }
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
-
-.animate-modal-in {
-  animation: modal-in 0.2s ease-out forwards;
-}
+.animate-modal-in { animation: modal-in 0.2s ease-out forwards; }

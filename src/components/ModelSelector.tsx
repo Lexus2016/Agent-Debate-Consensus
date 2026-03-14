@@ -20,7 +20,7 @@ export function ModelSelector() {
         </h3>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="w-5 h-5 flex items-center justify-center rounded-md text-muted/60 hover:text-foreground hover:bg-white/[0.06] transition-colors duration-150 text-[14px] leading-none"
+          className="w-5 h-5 flex items-center justify-center rounded-md text-muted/60 hover:text-foreground hover:bg-elevated transition-colors duration-150 text-[14px] leading-none"
           title="Discover more agents"
         >
           +
@@ -38,8 +38,8 @@ export function ModelSelector() {
                 onClick={() => toggleModel(model.id)}
                 className={`w-full flex items-center gap-2.5 px-2 py-[7px] rounded-lg text-left transition-all duration-150 ${
                   isActive
-                    ? "bg-white/[0.07]"
-                    : "hover:bg-white/[0.04]"
+                    ? "bg-elevated"
+                    : "hover:bg-elevated"
                 }`}
               >
                 <div
@@ -64,7 +64,7 @@ export function ModelSelector() {
                     e.stopPropagation();
                     removeModel(model.id);
                   }}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-md text-[10px] text-muted hover:text-foreground hover:bg-white/[0.08] opacity-0 group-hover:opacity-100 transition-all duration-150"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-md text-[10px] text-muted hover:text-foreground hover:bg-elevated opacity-0 group-hover:opacity-100 transition-all duration-150"
                   title="Remove"
                 >
                   ✕
