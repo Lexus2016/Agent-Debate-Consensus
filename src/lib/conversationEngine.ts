@@ -7,6 +7,7 @@ interface ResponseDecision {
 }
 
 const MAX_PER_MODEL = 2; // Max responses per model between user messages
+const MAX_MODERATOR_ROUNDS = 1; // Moderator speaks once per user message (final word)
 
 function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -78,7 +79,7 @@ export class ConversationEngine {
     let priority = 0;
     let shouldRespond = false;
 
-    // Highest priority: @mentioned - BYPASSES COOLDOWN and per-model limit
+    // Highest priority: @mentioned — BYPASSES COOLDOWN and per-model limit
     const escaped = escapeRegex(model.shortName.toLowerCase());
     const mentionPattern = new RegExp(`@${escaped}\\b`, "i");
     const isMentioned = mentionPattern.test(latestMessage.content);
@@ -88,7 +89,7 @@ export class ConversationEngine {
       priority = 100;
     }
 
-    // Check cooldown (10 seconds) - but @mentions bypass this
+    // Check cooldown (10 seconds) — but @mentions bypass this
     const lastResponse = this.cooldowns.get(model.id) || 0;
     const isOnCooldown = Date.now() - lastResponse < 10000;
 
@@ -104,24 +105,50 @@ export class ConversationEngine {
       (m) => m.id !== moderatorId && !failedModelIds?.has(m.id)
     ).length;
 
+    // ── CRITICAL: After moderator has spoken, STOP all non-moderator responses ──
+    // The moderator's summary is the final word in each round.
+    // Only a new user message or explicit @mention restarts the cycle.
+    if (moderatorId && !isMentioned && !isModerator) {
+      const moderatorHasSpoken = this.countModelRoundsSinceUser(messages, moderatorId) > 0;
+      if (moderatorHasSpoken) {
+        return { shouldRespond: false, delay: 0, priority: 0 };
+      }
+    }
+
+    // ── Total AI round cap ──
+    // With moderator: all non-mods respond once + 1 moderator summary
+    // Without moderator: all models respond + limited rebuttals
+    const maxTotalRounds = moderatorId
+      ? nonModeratorCount + MAX_MODERATOR_ROUNDS
+      : activeModels.length + 2;
+
+    if (!isMentioned && aiRounds >= maxTotalRounds) {
+      return { shouldRespond: false, delay: 0, priority: 0 };
+    }
+
     // Per-model limit (unless @mentioned)
     if (!isMentioned && modelRounds >= MAX_PER_MODEL) {
       return { shouldRespond: false, delay: 0, priority: 0 };
     }
 
-    // Moderator logic: respond after regular models have had their say
+    // ── Moderator logic ──
     if (isModerator && !isMentioned) {
+      // Moderator: max 1 response per round (final summary)
+      if (modelRounds >= MAX_MODERATOR_ROUNDS) {
+        return { shouldRespond: false, delay: 0, priority: 0 };
+      }
+
       // Moderator responds to user messages (goes last, lower priority)
       if (latestMessage.role === "user") {
         shouldRespond = true;
         priority = 70;
       }
-      // Moderator summarizes after each non-moderator model has had a chance to speak
+      // Moderator summarizes after non-moderator models have had their say
       else if (aiRounds >= Math.max(nonModeratorCount, 2)) {
         shouldRespond = true;
         priority = 90; // High priority for summary
       }
-      // Moderator doesn't jump into mid-debate randomly
+      // Moderator doesn't jump into mid-debate
       else {
         return { shouldRespond: false, delay: 0, priority: 0 };
       }
@@ -130,6 +157,8 @@ export class ConversationEngine {
       const delay = 3000 + readingTime + Math.random() * 1500;
       return { shouldRespond, delay, priority };
     }
+
+    // ── Non-moderator logic ──
 
     // High priority: User message — all active models respond
     if (!shouldRespond && latestMessage.role === "user") {
@@ -143,11 +172,8 @@ export class ConversationEngine {
       priority = 60;
     }
 
-    // Low priority: Random chance (10%) for natural flow
-    if (!shouldRespond && Math.random() < 0.1) {
-      shouldRespond = true;
-      priority = 20;
-    }
+    // NOTE: No random trigger — models only respond when they have a reason
+    // (user message, @mention, or question). This prevents echo chambers.
 
     // Calculate delay based on message length (simulate reading)
     const readingTime = Math.min(latestMessage.content.length * 15, 2000);
@@ -236,12 +262,14 @@ Your role as moderator:
 - Guide the discussion — ask clarifying questions, redirect off-topic tangents
 - After participants have debated, provide a concise summary of the key arguments
 - Identify areas of agreement and remaining disagreements
-- When consensus is reached, clearly state the conclusion
+- When consensus is reached, clearly state the conclusion with a justified final answer
 - When the debate is exhausted (no new arguments), wrap up with a final summary
 - You can address participants using @mentions (e.g., @${otherModels[0] || "User"})
 - The human user has ultimate authority — follow their direction if they intervene
 - Keep your moderator responses focused and structured
 - Do NOT take sides in the debate — remain neutral and analytical
+
+CRITICAL: Your summary CONCLUDES the round. After you summarize, participants will NOT respond further — the discussion pauses until the user speaks again. Make your summary comprehensive and final. End with a clear, justified conclusion that answers the original question.
 
 CRITICAL LANGUAGE RULE: You MUST respond in the same language the user used in their message. If the user writes in Ukrainian, respond in Ukrainian. If in English, respond in English. Always match the user's language. This applies to all your responses without exception.`;
   }
@@ -260,7 +288,12 @@ Rules:
 - You can address others using @mentions (e.g., @${otherModels[0] || "User"})
 - If directly addressed with @${model.shortName}, you must respond
 - Keep responses focused and substantive (2-4 sentences usually, unless more detail is warranted)
-- If consensus has been reached or you have nothing new to add, say so briefly rather than repeating points
+
+CRITICAL STOP RULES:
+- After the moderator summarizes the debate, DO NOT respond. The round is over. Wait for the user's next message.
+- DO NOT write messages that only express agreement ("I agree", "Great point"). If you agree and have nothing new to add, stay silent.
+- DO NOT write messages asking for a new topic or saying "ready for next topic". That is the user's decision.
+- Only respond when you have a genuinely NEW argument, counterpoint, or insight to contribute.
 
 CRITICAL LANGUAGE RULE: You MUST respond in the same language the user used in their message. If the user writes in Ukrainian, respond in Ukrainian. If in English, respond in English. Always match the user's language. This applies to all your responses without exception.`;
 }
