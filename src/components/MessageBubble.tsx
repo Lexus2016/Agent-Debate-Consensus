@@ -64,7 +64,6 @@ export function MessageBubble({ message }: Props) {
 
   const avatarLetter = model?.shortName?.[0]?.toUpperCase() ?? "A";
 
-  // User message — iMessage style, right-aligned
   if (isUser) {
     return (
       <div className="flex justify-end mb-3 animate-fade-in group/msg">
@@ -72,7 +71,7 @@ export function MessageBubble({ message }: Props) {
           <div className="flex items-center justify-end gap-1.5 mb-1">
             <button
               onClick={handleCopy}
-              className="opacity-0 group-hover/msg:opacity-100 p-1 rounded-md hover:bg-white/[0.06] transition-all duration-150"
+              className="opacity-0 group-hover/msg:opacity-100 p-1 rounded-md hover:bg-elevated transition-all duration-150"
               title="Copy as Markdown"
             >
               {copied ? (
@@ -105,11 +104,9 @@ export function MessageBubble({ message }: Props) {
     );
   }
 
-  // AI message — left-aligned with avatar
   return (
     <div className="flex justify-start mb-3 animate-fade-in group/msg">
       <div className="flex gap-2.5 max-w-[78%]">
-        {/* Avatar */}
         <div
           className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-semibold flex-shrink-0 mt-5"
           style={{ backgroundColor: model?.color ?? "#3a3a3c" }}
@@ -118,7 +115,6 @@ export function MessageBubble({ message }: Props) {
         </div>
 
         <div className="flex-1 min-w-0">
-          {/* Name + copy */}
           <div className="flex items-center gap-2 mb-1">
             <span
               className="text-[11px] font-semibold leading-none"
@@ -128,7 +124,7 @@ export function MessageBubble({ message }: Props) {
             </span>
             <button
               onClick={handleCopy}
-              className="opacity-0 group-hover/msg:opacity-100 p-0.5 rounded hover:bg-white/[0.06] transition-all duration-150"
+              className="opacity-0 group-hover/msg:opacity-100 p-0.5 rounded hover:bg-elevated transition-all duration-150"
               title="Copy as Markdown"
             >
               {copied ? (
@@ -143,7 +139,6 @@ export function MessageBubble({ message }: Props) {
             </button>
           </div>
 
-          {/* Reasoning (collapsible) */}
           {message.reasoning && (
             <div className="mb-1.5">
               <button
@@ -162,15 +157,14 @@ export function MessageBubble({ message }: Props) {
                 Thinking...
               </button>
               {reasoningOpen && (
-                <div className="mt-1.5 ml-4 pl-3 border-l border-white/[0.06] text-[12px] text-muted/60 italic leading-relaxed">
+                <div className="mt-1.5 ml-4 pl-3 border-l border-separator text-[12px] text-muted/60 italic leading-relaxed">
                   {message.reasoning}
                 </div>
               )}
             </div>
           )}
 
-          {/* Content */}
-          <div className="bg-surface-light rounded-[20px] rounded-tl-md px-4 py-2.5 border border-white/[0.04]">
+          <div className="bg-surface-light rounded-[20px] rounded-tl-md px-4 py-2.5 border border-separator">
             <div className="whitespace-pre-wrap text-[14px] leading-[1.55] text-foreground/90">
               {formattedContent.map((part, i) =>
                 typeof part === "string" ? (

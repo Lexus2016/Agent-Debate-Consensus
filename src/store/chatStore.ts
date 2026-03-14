@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { v4 as uuidv4 } from "uuid";
-import { ChatState, Model, Message } from "@/types/chat";
+import { ChatState, Model, Message, Theme } from "@/types/chat";
 import { availableModels as defaultModels } from "@/lib/models";
 
 export const useChatStore = create<ChatState>()(
@@ -12,6 +12,7 @@ export const useChatStore = create<ChatState>()(
       availableModels: defaultModels,
       typingModels: [],
       contextWindowSize: 20,
+      theme: "dark" as Theme,
 
       addMessage: (message) => {
         const id = uuidv4();
@@ -84,6 +85,11 @@ export const useChatStore = create<ChatState>()(
 
       setContextWindowSize: (size) => set({ contextWindowSize: size }),
 
+      setTheme: (theme) => {
+        document.documentElement.setAttribute("data-theme", theme);
+        set({ theme });
+      },
+
       clearChat: () => set({ messages: [], typingModels: [] }),
 
       initializeModels: (models) => set({ availableModels: models }),
@@ -95,6 +101,7 @@ export const useChatStore = create<ChatState>()(
         availableModels: state.availableModels,
         activeModels: state.activeModels,
         contextWindowSize: state.contextWindowSize,
+        theme: state.theme,
       }),
     }
   )

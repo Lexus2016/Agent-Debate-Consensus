@@ -29,12 +29,15 @@ export interface TypingState {
   modelName: string;
 }
 
+export type Theme = "light" | "dark";
+
 export interface ChatState {
   messages: Message[];
   activeModels: Model[];
   availableModels: Model[];
   typingModels: TypingState[];
   contextWindowSize: number;
+  theme: Theme;
 
   addMessage: (message: Omit<Message, "id" | "timestamp">) => string;
   updateMessage: (id: string, content: string, reasoning?: string) => void;
@@ -44,6 +47,7 @@ export interface ChatState {
   addAvailableModel: (model: Model) => void;
   removeModel: (modelId: string) => void;
   setContextWindowSize: (size: number) => void;
+  setTheme: (theme: Theme) => void;
   clearChat: () => void;
   initializeModels: (models: Model[]) => void;
 }

@@ -18,7 +18,7 @@ export function ActiveModels() {
       {activeModels.map((model) => (
         <div
           key={model.id}
-          className="flex items-center gap-1.5 pl-2 pr-2.5 py-[3px] rounded-full bg-white/[0.05] text-[11px] font-medium text-foreground/70"
+          className="flex items-center gap-1.5 pl-2 pr-2.5 py-[3px] rounded-full bg-elevated text-[11px] font-medium text-foreground/70"
         >
           <div
             className="w-1.5 h-1.5 rounded-full flex-shrink-0"
