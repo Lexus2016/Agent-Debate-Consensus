@@ -12,14 +12,13 @@ interface Props {
 export function MessageBubble({ message }: Props) {
   const activeModels = useChatStore((state) => state.activeModels);
   const availableModels = useChatStore((state) => state.availableModels);
-  const [reasoningExpanded, setReasoningExpanded] = useState(false);
+  const [reasoningOpen, setReasoningOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const isUser = message.role === "user";
   const model = [...activeModels, ...availableModels].find(
     (m) => m.id === message.modelId
   );
 
-  // Parse and highlight @mentions
   const formattedContent = useMemo(() => {
     const allModels = [...activeModels, ...availableModels];
     const parts: (string | { text: string; color: string })[] = [];
@@ -41,7 +40,7 @@ export function MessageBubble({ message }: Props) {
       if (mentionedModel) {
         parts.push({ text: match[0], color: mentionedModel.color });
       } else if (match[1].toLowerCase() === "user") {
-        parts.push({ text: match[0], color: "#6366f1" });
+        parts.push({ text: match[0], color: "#bf5af2" });
       } else {
         parts.push(match[0]);
       }
@@ -63,40 +62,38 @@ export function MessageBubble({ message }: Props) {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Get first letter for avatar
   const avatarLetter = model?.shortName?.[0]?.toUpperCase() ?? "A";
 
+  // User message — iMessage style, right-aligned
   if (isUser) {
     return (
-      <div className="flex justify-end mb-4 animate-fade-in group/msg">
+      <div className="flex justify-end mb-3 animate-fade-in group/msg">
         <div className="max-w-[72%]">
-          <div className="flex items-center justify-end gap-2 mb-1">
+          <div className="flex items-center justify-end gap-1.5 mb-1">
             <button
               onClick={handleCopy}
-              className="opacity-0 group-hover/msg:opacity-100 transition-opacity duration-150 p-1 rounded-md hover:bg-white/10"
+              className="opacity-0 group-hover/msg:opacity-100 p-1 rounded-md hover:bg-white/[0.06] transition-all duration-150"
               title="Copy as Markdown"
             >
               {copied ? (
-                <svg className="w-3 h-3 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <svg className="w-3 h-3 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
               ) : (
-                <svg className="w-3 h-3 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg className="w-3 h-3 text-muted/50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
               )}
             </button>
-            <div className="text-[10px] text-muted font-medium tracking-wide uppercase">
-              You
-            </div>
+            <span className="text-[11px] text-muted/50 font-medium">You</span>
           </div>
-          <div className="bg-gradient-to-br from-primary to-accent text-white rounded-2xl rounded-tr-sm px-4 py-3 shadow-lg shadow-primary/15">
-            <div className="whitespace-pre-wrap text-sm leading-relaxed">
+          <div className="bg-primary text-white rounded-[20px] rounded-br-md px-4 py-2.5">
+            <div className="whitespace-pre-wrap text-[14px] leading-[1.55]">
               {formattedContent.map((part, i) =>
                 typeof part === "string" ? (
                   <span key={i}>{part}</span>
                 ) : (
-                  <span key={i} style={{ color: "rgba(255,255,255,0.85)" }} className="font-semibold">
+                  <span key={i} className="font-semibold text-white/80">
                     {part.text}
                   </span>
                 )
@@ -108,75 +105,73 @@ export function MessageBubble({ message }: Props) {
     );
   }
 
+  // AI message — left-aligned with avatar
   return (
-    <div className="flex justify-start mb-4 animate-fade-in group/msg">
-      <div className="flex gap-3 max-w-[78%]">
+    <div className="flex justify-start mb-3 animate-fade-in group/msg">
+      <div className="flex gap-2.5 max-w-[78%]">
         {/* Avatar */}
         <div
-          className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 mt-0.5 shadow-md"
-          style={{ backgroundColor: model?.color ?? "#3f3f46" }}
+          className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-semibold flex-shrink-0 mt-5"
+          style={{ backgroundColor: model?.color ?? "#3a3a3c" }}
         >
           {avatarLetter}
         </div>
 
         <div className="flex-1 min-w-0">
-          {/* Model name + copy button */}
-          <div className="flex items-center gap-2 mb-1.5">
-            <div
-              className="text-xs font-semibold leading-none"
-              style={{ color: model?.color ?? "#71717a" }}
+          {/* Name + copy */}
+          <div className="flex items-center gap-2 mb-1">
+            <span
+              className="text-[11px] font-semibold leading-none"
+              style={{ color: model?.color ?? "#98989d" }}
             >
               {message.modelName ?? "Agent"}
-            </div>
+            </span>
             <button
               onClick={handleCopy}
-              className="opacity-0 group-hover/msg:opacity-100 transition-opacity duration-150 p-1 rounded-md hover:bg-surface-light"
+              className="opacity-0 group-hover/msg:opacity-100 p-0.5 rounded hover:bg-white/[0.06] transition-all duration-150"
               title="Copy as Markdown"
             >
               {copied ? (
-                <svg className="w-3 h-3 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <svg className="w-3 h-3 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
               ) : (
-                <svg className="w-3 h-3 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg className="w-3 h-3 text-muted/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
               )}
             </button>
           </div>
 
-          {/* Reasoning block */}
+          {/* Reasoning (collapsible) */}
           {message.reasoning && (
-            <div className="mb-2 rounded-xl border border-border/50 overflow-hidden">
+            <div className="mb-1.5">
               <button
-                onClick={() => setReasoningExpanded(!reasoningExpanded)}
-                className="w-full flex items-center gap-2 px-3 py-2 bg-surface-light/60 hover:bg-surface-light/80 transition-colors text-left"
+                onClick={() => setReasoningOpen(!reasoningOpen)}
+                className="flex items-center gap-1.5 text-[11px] text-muted/60 hover:text-muted transition-colors duration-150"
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-muted animate-pulse flex-shrink-0" />
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted flex-1">
-                  Thinking...
-                </span>
                 <svg
-                  className={`w-3 h-3 text-muted transition-transform duration-200 ${reasoningExpanded ? "rotate-180" : ""}`}
+                  className={`w-3 h-3 transition-transform duration-150 ${reasoningOpen ? "rotate-90" : ""}`}
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
                   strokeWidth={2}
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                 </svg>
+                Thinking...
               </button>
-              {reasoningExpanded && (
-                <div className="px-3 py-2 bg-surface-dark/40 text-xs text-muted italic leading-relaxed border-t border-border/30">
+              {reasoningOpen && (
+                <div className="mt-1.5 ml-4 pl-3 border-l border-white/[0.06] text-[12px] text-muted/60 italic leading-relaxed">
                   {message.reasoning}
                 </div>
               )}
             </div>
           )}
 
-          {/* Message content */}
-          <div className="bg-surface border border-border/50 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm">
-            <div className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">
+          {/* Content */}
+          <div className="bg-surface-light rounded-[20px] rounded-tl-md px-4 py-2.5 border border-white/[0.04]">
+            <div className="whitespace-pre-wrap text-[14px] leading-[1.55] text-foreground/90">
               {formattedContent.map((part, i) =>
                 typeof part === "string" ? (
                   <span key={i}>{part}</span>
@@ -187,7 +182,7 @@ export function MessageBubble({ message }: Props) {
                 )
               )}
               {message.isStreaming && (
-                <span className="inline-block w-2 h-[1.1em] bg-foreground/60 animate-blink ml-0.5 rounded-sm align-text-bottom" />
+                <span className="inline-block w-[2px] h-[1.1em] bg-foreground/50 animate-blink ml-0.5 align-text-bottom" />
               )}
             </div>
           </div>

@@ -38,8 +38,8 @@ export function ChatInput({ onSend, onStop, disabled, isGenerating }: Props) {
   };
 
   return (
-    <div className="border-t border-border/50 p-4 bg-background">
-      <div className="flex gap-2 items-end">
+    <div className="px-5 pb-5 pt-2">
+      <div className="flex items-end gap-2">
         <div className="flex-1 relative">
           <textarea
             ref={textareaRef}
@@ -48,48 +48,45 @@ export function ChatInput({ onSend, onStop, disabled, isGenerating }: Props) {
             onKeyDown={handleKeyDown}
             placeholder={
               disabled
-                ? "Select agents from the sidebar to begin..."
-                : "Join the debate... (use @Model to address specific agent)"
+                ? "Select agents to begin..."
+                : "Message... (use @Model to mention)"
             }
             disabled={disabled}
             rows={1}
-            className="w-full bg-surface-light border border-border/60 rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/10 disabled:opacity-40 disabled:cursor-not-allowed placeholder:text-muted transition-all duration-200 leading-relaxed"
+            className="w-full bg-surface-light rounded-[14px] border border-white/[0.06] px-4 py-[10px] text-[14px] leading-[1.5] resize-none focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/20 disabled:opacity-30 disabled:cursor-not-allowed placeholder:text-muted/60 transition-all duration-150"
           />
         </div>
 
-        {/* Stop button — shown only during generation, alongside the Send button */}
+        {/* Stop — only during generation */}
         {isGenerating && (
           <button
             onClick={onStop}
             title="Stop generation"
-            className="flex-shrink-0 w-10 h-10 flex items-center justify-center border border-border/60 rounded-xl text-muted hover:text-foreground hover:border-border hover:bg-surface-light transition-all duration-200"
+            className="flex-shrink-0 w-[34px] h-[34px] flex items-center justify-center rounded-full bg-surface-light border border-white/[0.06] text-muted hover:text-foreground hover:bg-surface-hover transition-colors duration-150"
           >
-            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-              <rect x="5" y="5" width="14" height="14" rx="2" />
+            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+              <rect x="6" y="6" width="12" height="12" rx="2" />
             </svg>
           </button>
         )}
 
-        {/* Send button — always visible */}
+        {/* Send — always visible */}
         <button
           onClick={handleSubmit}
           disabled={!input.trim() || disabled}
           title="Send message"
-          className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-gradient-to-br from-primary to-accent rounded-xl text-white font-medium text-sm transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 hover:scale-105 shadow-lg shadow-primary/20 disabled:shadow-none disabled:scale-100"
+          className="flex-shrink-0 w-[34px] h-[34px] flex items-center justify-center rounded-full bg-primary text-white transition-all duration-150 disabled:opacity-20 disabled:cursor-not-allowed hover:bg-primary-hover active:scale-95"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
           </svg>
         </button>
       </div>
 
       {isGenerating && (
-        <div className="flex items-center gap-1.5 mt-2 px-1">
-          <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-          <p className="text-[11px] text-muted">
-            Agents are debating — you can intervene at any time
-          </p>
-        </div>
+        <p className="text-[11px] text-muted/60 mt-2 ml-1">
+          Agents debating — you can intervene at any time
+        </p>
       )}
     </div>
   );

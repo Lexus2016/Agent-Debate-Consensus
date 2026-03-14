@@ -1,10 +1,10 @@
 import { Model } from "@/types/chat";
 
 const modelColors = [
-  "#f43f5e", // rose
-  "#10b981", // emerald
-  "#f59e0b", // amber
-  "#3b82f6", // blue
+  "#ff6482", // rose
+  "#32d583", // emerald
+  "#fbbf24", // amber
+  "#60a5fa", // blue
 ];
 
 export const availableModels: Model[] = [
