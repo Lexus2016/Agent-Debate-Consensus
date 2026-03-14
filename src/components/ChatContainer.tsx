@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback, useState, useRef } from "react";
 import { useChatStore } from "@/store/chatStore";
 import {
   conversationEngine,
@@ -97,6 +97,7 @@ function ChatApp() {
   const fontSize = useChatStore((state) => state.fontSize);
   const setFontSize = useChatStore((state) => state.setFontSize);
   const moderatorId = useChatStore((state) => state.moderatorId);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const isGenerating = typingModels.length > 0 || messages.some((m) => m.isStreaming);
 
@@ -233,15 +234,19 @@ function ChatApp() {
   return (
     <div className="h-screen flex overflow-hidden">
       {/* macOS-style sidebar */}
-      <div className="w-[260px] flex-shrink-0 vibrancy border-r border-separator flex flex-col">
+      <div
+        className={`flex-shrink-0 vibrancy border-r border-separator flex flex-col transition-all duration-250 ease-in-out overflow-hidden ${
+          sidebarOpen ? "w-[260px]" : "w-0 border-r-0"
+        }`}
+      >
         {/* App header */}
-        <div className="h-[52px] flex items-center gap-2.5 px-4 border-b border-separator">
+        <div className="h-[52px] flex items-center gap-2.5 px-4 border-b border-separator min-w-[260px]">
           <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-primary-hover flex items-center justify-center flex-shrink-0">
             <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
-          <span className="text-[14px] font-semibold tracking-[-0.01em] flex-1">Agent Debate</span>
+          <span className="text-[14px] font-semibold tracking-[-0.01em] flex-1 whitespace-nowrap">Agent Debate</span>
 
           {/* Theme toggle */}
           <button
@@ -258,6 +263,17 @@ function ChatApp() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
               </svg>
             )}
+          </button>
+
+          {/* Sidebar collapse */}
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-foreground hover:bg-elevated transition-colors duration-150"
+            title="Hide sidebar"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+            </svg>
           </button>
         </div>
 
@@ -338,7 +354,7 @@ function ChatApp() {
           )}
 
           <a
-            href="https://github.com/nickcheranev/llm-grpchat"
+            href="https://github.com/Lexus2016/Agent-Debate-Consensus"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-1.5 h-[30px] text-[12px] text-muted/70 hover:text-foreground rounded-lg hover:bg-elevated transition-colors duration-150"
@@ -353,7 +369,21 @@ function ChatApp() {
       </div>
 
       {/* Main chat area */}
-      <div className="flex-1 flex flex-col min-w-0 bg-background">
+      <div className="flex-1 flex flex-col min-w-0 bg-background relative">
+        {/* Sidebar open button when collapsed */}
+        {!sidebarOpen && (
+          <div className="absolute top-2.5 left-2.5 z-10">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-light border border-separator text-muted hover:text-foreground hover:bg-elevated transition-colors duration-150 shadow-sm"
+              title="Show sidebar"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        )}
         <MessageList />
         <ChatInput
           onSend={handleSendMessage}
