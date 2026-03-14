@@ -1,11 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 
+function getApiKey(req: NextRequest): string | null {
+  const serverKey = process.env.OPENROUTER_API_KEY;
+  if (serverKey) return serverKey;
+  return req.headers.get("x-api-key");
+}
+
 export async function GET(req: NextRequest) {
+  const apiKey = getApiKey(req);
+
+  if (!apiKey) {
+    return NextResponse.json(
+      { error: "No API key provided" },
+      { status: 401 }
+    );
+  }
+
   try {
     const response = await fetch("https://openrouter.ai/api/v1/models", {
       headers: {
-        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        "HTTP-Referer": "http://localhost:3000",
+        "Authorization": `Bearer ${apiKey}`,
+        "HTTP-Referer": "https://lryq.com",
         "X-Title": "Agent Debate Consensus",
       },
     });

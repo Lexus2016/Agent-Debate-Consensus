@@ -13,6 +13,8 @@ export const useChatStore = create<ChatState>()(
       typingModels: [],
       contextWindowSize: 20,
       theme: "dark" as Theme,
+      publicMode: null,
+      apiKey: null,
 
       addMessage: (message) => {
         const id = uuidv4();
@@ -88,6 +90,18 @@ export const useChatStore = create<ChatState>()(
       setTheme: (theme) => {
         document.documentElement.setAttribute("data-theme", theme);
         set({ theme });
+      },
+
+      setPublicMode: (mode) => set({ publicMode: mode }),
+
+      setApiKey: (key) => {
+        sessionStorage.setItem("openrouter-api-key", key);
+        set({ apiKey: key });
+      },
+
+      clearApiKey: () => {
+        sessionStorage.removeItem("openrouter-api-key");
+        set({ apiKey: null });
       },
 
       clearChat: () => set({ messages: [], typingModels: [] }),

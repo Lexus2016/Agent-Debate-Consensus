@@ -1,16 +1,31 @@
 import { NextRequest } from "next/server";
 import OpenAI from "openai";
 
-const openai = new OpenAI({
-  baseURL: "https://openrouter.ai/api/v1",
-  apiKey: process.env.OPENROUTER_API_KEY!,
-  defaultHeaders: {
-    "HTTP-Referer": "http://localhost:3000",
-    "X-Title": "Agent Debate Consensus",
-  },
-});
+function getApiKey(req: NextRequest): string | null {
+  const serverKey = process.env.OPENROUTER_API_KEY;
+  if (serverKey) return serverKey;
+  return req.headers.get("x-api-key");
+}
 
 export async function POST(req: NextRequest) {
+  const apiKey = getApiKey(req);
+
+  if (!apiKey) {
+    return new Response(
+      JSON.stringify({ error: "No API key provided" }),
+      { status: 401, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
+  const openai = new OpenAI({
+    baseURL: "https://openrouter.ai/api/v1",
+    apiKey,
+    defaultHeaders: {
+      "HTTP-Referer": "https://lryq.com",
+      "X-Title": "Agent Debate Consensus",
+    },
+  });
+
   try {
     const { messages, model } = await req.json();
 
@@ -28,7 +43,7 @@ export async function POST(req: NextRequest) {
             const delta = chunk.choices[0]?.delta as any;
             const content = delta?.content || "";
             const reasoning = delta?.reasoning_content || delta?.reasoning || "";
-            
+
             if (content || reasoning) {
               controller.enqueue(
                 encoder.encode(`data: ${JSON.stringify({ content, reasoning })}\n\n`)
