@@ -33,6 +33,7 @@ export class ConversationEngine {
   private currentlyResponding = 0;
   private onTriggerResponse?: (modelId: string, priority: number) => void;
   private _roundComplete = false;
+  private _epoch = 0; // Incremented on each round/stop to invalidate stale setTimeout callbacks
   private retryingModels: Set<string> = new Set();
   private retryAttempts: Map<string, { attempts: number; priority: number; timerId: ReturnType<typeof setTimeout> }> = new Map();
 
@@ -46,6 +47,7 @@ export class ConversationEngine {
    */
   markRoundComplete(): void {
     this._roundComplete = true;
+    this._epoch++;
     this.responseQueue = [];
     this.pendingModels.clear();
     for (const [, entry] of this.retryAttempts) {
@@ -61,10 +63,12 @@ export class ConversationEngine {
    */
   startNewRound(): void {
     this._roundComplete = false;
+    this._epoch++;
     this.respondedThisRound.clear();
     this.discussionCount.clear();
     this._summarizerModelId = null;
     this._moderatorSettleCount = 0;
+    this.currentlyResponding = 0;
     // Cancel any pending/queued responses from the previous round
     this.responseQueue = [];
     this.pendingModels.clear();
@@ -253,10 +257,11 @@ export class ConversationEngine {
       return;
     }
     this.pendingModels.add(modelId);
+    const epoch = this._epoch;
 
     setTimeout(() => {
-      // Bail if round ended or model was cleared while waiting
-      if (this._roundComplete || !this.pendingModels.has(modelId)) {
+      // Bail if round ended, epoch changed (stop/new round), or model was cleared while waiting
+      if (epoch !== this._epoch || this._roundComplete || !this.pendingModels.has(modelId)) {
         this.pendingModels.delete(modelId);
         return;
       }
@@ -391,6 +396,7 @@ export class ConversationEngine {
     this._moderatorSettleCount = 0;
     this.currentlyResponding = 0;
     this._roundComplete = false;
+    this._epoch++;
     for (const [, entry] of this.retryAttempts) {
       clearTimeout(entry.timerId);
     }

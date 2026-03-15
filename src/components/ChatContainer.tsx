@@ -86,7 +86,7 @@ export function ChatContainer() {
 
   if (!configLoaded) {
     return (
-      <div className="h-screen flex items-center justify-center bg-background">
+      <div className="h-dvh flex items-center justify-center bg-background">
         <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
       </div>
     );
@@ -129,16 +129,34 @@ function ChatApp() {
   const loadSession = useChatStore((state) => state.loadSession);
   const deleteSession = useChatStore((state) => state.deleteSession);
   const currentSessionId = useChatStore((state) => state.currentSessionId);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return window.innerWidth >= 768;
+  });
   const [historyOpen, setHistoryOpen] = useState(false);
   const [keyPromptOpen, setKeyPromptOpen] = useState(false);
 
   const isGenerating = typingModels.length > 0 || messages.some((m) => m.isStreaming);
 
+  // Auto-close sidebar when window resizes below mobile breakpoint
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setSidebarOpen(false);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const handleStop = useCallback(() => {
+    // 1. Mark round complete FIRST — blocks all downstream activity
+    //    (analyzeForResponse, queueResponse, completeResponse queue processing,
+    //    processModelResponses, and stale setTimeout callbacks via epoch check)
+    conversationEngine.markRoundComplete();
+    // 2. Abort all active HTTP streams
     stopAllStreams();
-    conversationEngine.reset();
-    // Read fresh state to avoid stale closure values
+    // 3. Clean up UI state
     const currentState = useChatStore.getState();
     currentState.typingModels.forEach((t) => setTyping(t.modelId, t.modelName, false));
     currentState.messages.forEach((m) => {
@@ -274,7 +292,14 @@ function ChatApp() {
       );
 
       if (isMod) {
-        // Moderator spoke — check if it @mentioned anyone for further discussion
+        // Settle-triggered response (summary/conclusion, priority 50) → end the round
+        // immediately. Don't scan for @mentions — the moderator's summary concludes
+        // the debate, even if it attributes arguments with @ModelName.
+        if (priority <= 50) {
+          conversationEngine.markRoundComplete();
+          return;
+        }
+        // Opening or discussion response — check for @mentions for further discussion
         if (latestMessage) {
           processModelResponses(latestMessage);
         }
@@ -402,7 +427,7 @@ function ChatApp() {
   const sortedSessions = [...sessions].sort((a, b) => b.updatedAt - a.updatedAt);
 
   return (
-    <div className="h-screen flex overflow-hidden">
+    <div className="h-dvh flex overflow-hidden">
       {/* Mobile backdrop */}
       {sidebarOpen && (
         <div
@@ -498,7 +523,7 @@ function ChatApp() {
                           e.stopPropagation();
                           deleteSession(session.id);
                         }}
-                        className="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-md text-[11px] text-muted hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all duration-150"
+                        className="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-md text-[11px] text-muted hover:text-red-400 opacity-0 group-hover:opacity-100 touch-visible transition-all duration-150"
                         title="Delete"
                       >
                         ✕
@@ -625,15 +650,15 @@ function ChatApp() {
 
       {/* Main chat area */}
       <div className="flex-1 flex flex-col min-w-0 bg-background relative">
-        {/* Sidebar open button when collapsed */}
+        {/* Sidebar open button when collapsed — fixed on mobile so it stays visible while scrolling */}
         {!sidebarOpen && (
-          <div className="absolute top-2.5 left-2.5 z-10">
+          <div className="fixed md:absolute top-2.5 left-2.5 z-10">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-light border border-separator text-muted hover:text-foreground hover:bg-elevated transition-colors duration-150 shadow-sm"
+              className="w-9 h-9 md:w-8 md:h-8 flex items-center justify-center rounded-xl md:rounded-lg bg-surface-light border border-separator text-muted hover:text-foreground hover:bg-elevated transition-colors duration-150 shadow-md md:shadow-sm"
               title="Show sidebar"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+              <svg className="w-4.5 h-4.5 md:w-4 md:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>

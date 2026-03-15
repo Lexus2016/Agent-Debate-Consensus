@@ -198,7 +198,7 @@ export function ChatInput({ onSend, onStop, disabled, isGenerating }: Props) {
   };
 
   return (
-    <div className="px-5 pb-5 pt-2">
+    <div className="px-3 pb-3 pt-2 md:px-5 md:pb-5 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:pb-[max(1.25rem,env(safe-area-inset-bottom))]">
       {/* Hidden file input */}
       <input
         ref={fileInputRef}
@@ -286,72 +286,48 @@ export function ChatInput({ onSend, onStop, disabled, isGenerating }: Props) {
             }
             disabled={disabled}
             rows={1}
-            className="flex-1 bg-transparent text-[15px] leading-[1.5] resize-none focus:outline-none disabled:cursor-not-allowed placeholder:text-muted py-0.5"
+            enterKeyHint="send"
+            autoComplete="off"
+            className="flex-1 bg-transparent text-[15px] md:text-[15px] text-base leading-[1.5] resize-none focus:outline-none disabled:cursor-not-allowed placeholder:text-muted py-0.5"
           />
 
           <div className="flex items-center gap-1.5 flex-shrink-0 pb-0.5">
             {/* File attach button */}
-            <div className="relative group">
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={disabled}
-                className="w-[30px] h-[30px] flex items-center justify-center rounded-full text-muted/40 hover:text-muted hover:bg-surface-hover transition-all duration-200 disabled:opacity-20 disabled:cursor-not-allowed"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                </svg>
-              </button>
-              <div className="absolute bottom-full right-0 mb-2 px-2.5 py-1.5 rounded-lg bg-surface-light border border-separator shadow-lg text-[12px] leading-[1.4] text-foreground whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150">
-                <span className="font-medium">Attach file</span>
-                <span className="text-muted"> — txt, md, csv, json, code (max 100 KB)</span>
-                <div className="absolute top-full right-3 w-2 h-2 bg-surface-light border-r border-b border-separator rotate-45 -mt-1" />
-              </div>
-            </div>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={disabled}
+              className="w-[30px] h-[30px] flex items-center justify-center rounded-full text-muted/40 hover:text-muted hover:bg-surface-hover transition-all duration-200 disabled:opacity-20 disabled:cursor-not-allowed"
+              title="Attach file (txt, md, csv, json, code — max 100 KB)"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+              </svg>
+            </button>
 
-            <div className="relative group">
-              <button
-                onClick={() => {
-                  if (webSearchBlocked) {
-                    setKeyPromptOpen(true);
-                    return;
-                  }
-                  setWebSearch(!webSearchEnabled);
-                }}
-                className={`w-[30px] h-[30px] flex items-center justify-center rounded-full transition-all duration-200 ${
-                  webSearchEnabled
-                    ? "bg-primary/15 text-primary ring-1 ring-primary/30"
-                    : "text-muted/40 hover:text-muted hover:bg-surface-hover"
-                }`}
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="M2 12h20" />
-                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-                  {!webSearchEnabled && (
-                    <line x1="4" y1="4" x2="20" y2="20" strokeWidth={2} strokeLinecap="round" />
-                  )}
-                </svg>
-              </button>
-              <div className="absolute bottom-full right-0 mb-2 px-2.5 py-1.5 rounded-lg bg-surface-light border border-separator shadow-lg text-[12px] leading-[1.4] text-foreground whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150">
-                {webSearchBlocked ? (
-                  <>
-                    <span className="font-medium">Web search</span>
-                    <span className="text-muted"> — requires API key</span>
-                  </>
-                ) : webSearchEnabled ? (
-                  <>
-                    <span className="text-primary font-medium">Web search ON</span>
-                    <span className="text-muted"> — models use live internet data</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="font-medium">Web search OFF</span>
-                    <span className="text-muted"> — click to enable</span>
-                  </>
+            <button
+              onClick={() => {
+                if (webSearchBlocked) {
+                  setKeyPromptOpen(true);
+                  return;
+                }
+                setWebSearch(!webSearchEnabled);
+              }}
+              title={webSearchBlocked ? "Web search — requires API key" : webSearchEnabled ? "Web search ON" : "Web search OFF"}
+              className={`w-[30px] h-[30px] flex items-center justify-center rounded-full transition-all duration-200 ${
+                webSearchEnabled
+                  ? "bg-primary/15 text-primary ring-1 ring-primary/30"
+                  : "text-muted/40 hover:text-muted hover:bg-surface-hover"
+              }`}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <circle cx="12" cy="12" r="10" />
+                <path d="M2 12h20" />
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                {!webSearchEnabled && (
+                  <line x1="4" y1="4" x2="20" y2="20" strokeWidth={2} strokeLinecap="round" />
                 )}
-                <div className="absolute top-full right-3 w-2 h-2 bg-surface-light border-r border-b border-separator rotate-45 -mt-1" />
-              </div>
-            </div>
+              </svg>
+            </button>
             {isGenerating && (
               <button
                 onClick={onStop}

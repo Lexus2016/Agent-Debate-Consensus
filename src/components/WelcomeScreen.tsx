@@ -42,7 +42,7 @@ export function WelcomeScreen() {
   };
 
   return (
-    <div className="h-screen flex items-center justify-center bg-background p-6">
+    <div className="h-dvh flex items-center justify-center bg-background p-4 md:p-6">
       <div className="w-full max-w-[440px] animate-fade-in">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
@@ -51,7 +51,7 @@ export function WelcomeScreen() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
-          <h1 className="text-[24px] font-semibold tracking-[-0.02em] mb-2">
+          <h1 className="text-[20px] md:text-[24px] font-semibold tracking-[-0.02em] mb-2">
             Agent Debate Consensus
           </h1>
           <p className="text-[15px] text-muted text-center leading-relaxed max-w-[360px]">
@@ -61,7 +61,7 @@ export function WelcomeScreen() {
         </div>
 
         {/* Features */}
-        <div className="grid grid-cols-2 gap-2.5 mb-8">
+        <div className="grid grid-cols-2 gap-2 md:gap-2.5 mb-6 md:mb-8">
           {[
             { icon: "M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a2 2 0 01-2-2v-6a2 2 0 012-2h8zM7 4h8a2 2 0 012 2v.5", label: "Multi-agent debate" },
             { icon: "M13 10V3L4 14h7v7l9-11h-7z", label: "Real-time streaming" },

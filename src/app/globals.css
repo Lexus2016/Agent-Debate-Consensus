@@ -143,3 +143,12 @@ body {
   0%, 100% { opacity: 0.25; transform: scale(1); }
   50% { opacity: 0.8; transform: scale(1.2); }
 }
+
+/* ── Mobile-responsive utilities ── */
+
+/* Touch devices: make hover-dependent buttons always visible */
+@media (hover: none) and (pointer: coarse) {
+  .touch-visible {
+    opacity: 1 !important;
+  }
+}

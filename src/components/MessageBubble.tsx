@@ -152,11 +152,11 @@ export function MessageBubble({ message, onBoost }: Props) {
   if (isUser) {
     return (
       <div className="flex justify-end mb-3 animate-fade-in group/msg">
-        <div className="max-w-[72%]">
+        <div className="max-w-[85%] md:max-w-[72%]">
           <div className="flex items-center justify-end gap-1.5 mb-1">
             <button
               onClick={handleCopy}
-              className="opacity-0 group-hover/msg:opacity-100 p-1 rounded-md hover:bg-elevated transition-all duration-150"
+              className="opacity-0 group-hover/msg:opacity-100 touch-visible p-1 rounded-md hover:bg-elevated transition-all duration-150"
               title="Copy as Markdown"
             >
               {copied ? (
@@ -171,7 +171,7 @@ export function MessageBubble({ message, onBoost }: Props) {
             </button>
             <span className="text-[12px] text-muted font-medium">You</span>
           </div>
-          <div className="bg-primary text-white rounded-[20px] rounded-br-md px-4 py-2.5">
+          <div className="bg-primary text-white rounded-[18px] md:rounded-[20px] rounded-br-md px-3 py-2 md:px-4 md:py-2.5">
             {message.content && (
               <div className="whitespace-pre-wrap leading-[1.6]" style={{ fontSize: `${fontSize}px` }}>
                 {highlightMentions(message.content, uniqueModels, true)}
@@ -215,9 +215,9 @@ export function MessageBubble({ message, onBoost }: Props) {
   // AI messages — full Markdown rendering with collapse
   return (
     <div className="flex justify-start mb-3 animate-fade-in group/msg">
-      <div className="flex gap-2.5 max-w-[78%]">
+      <div className="flex gap-2 md:gap-2.5 max-w-[92%] md:max-w-[78%]">
         <div
-          className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[12px] font-semibold flex-shrink-0 mt-5"
+          className="w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-white text-[11px] md:text-[12px] font-semibold flex-shrink-0 mt-5"
           style={{ backgroundColor: model?.color ?? "#3a3a3c" }}
         >
           {avatarLetter}
@@ -236,7 +236,7 @@ export function MessageBubble({ message, onBoost }: Props) {
             )}
             <button
               onClick={handleCopy}
-              className="opacity-0 group-hover/msg:opacity-100 p-0.5 rounded hover:bg-elevated transition-all duration-150"
+              className="opacity-0 group-hover/msg:opacity-100 touch-visible p-0.5 rounded hover:bg-elevated transition-all duration-150"
               title="Copy as Markdown"
             >
               {copied ? (
@@ -252,7 +252,7 @@ export function MessageBubble({ message, onBoost }: Props) {
             {onBoost && (
               <button
                 onClick={() => onBoost(message.content, message.modelName ?? "Agent")}
-                className="opacity-0 group-hover/msg:opacity-100 p-0.5 rounded hover:bg-elevated transition-all duration-150 text-muted/60 hover:text-amber-400"
+                className="opacity-0 group-hover/msg:opacity-100 touch-visible p-0.5 rounded hover:bg-elevated transition-all duration-150 text-muted/60 hover:text-amber-400"
                 title="Develop this idea further"
               >
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -288,7 +288,7 @@ export function MessageBubble({ message, onBoost }: Props) {
           )}
 
           <div
-            className={`bg-surface-light rounded-[20px] rounded-tl-md px-4 py-2.5 border border-separator relative ${
+            className={`bg-surface-light rounded-[18px] md:rounded-[20px] rounded-tl-md px-3 py-2 md:px-4 md:py-2.5 border border-separator relative ${
               isLongMessage ? "cursor-pointer" : ""
             }`}
             onClick={() => { if (isLongMessage) setExpanded(!expanded); }}

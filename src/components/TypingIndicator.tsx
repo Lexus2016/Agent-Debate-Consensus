@@ -15,7 +15,7 @@ export function TypingIndicator() {
         return (
           <div
             key={typing.modelId}
-            className="flex items-center gap-2 ml-[42px]"
+            className="flex items-center gap-2 ml-[36px] md:ml-[42px]"
           >
             <span className="text-[12px] text-muted font-medium">
               {typing.modelName}

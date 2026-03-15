@@ -111,8 +111,8 @@ export function ModelDiscoveryModal({ isOpen, onClose }: ModelDiscoveryModalProp
   if (!isOpen) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/50 backdrop-blur-sm">
-      <div className="bg-surface border border-separator w-full max-w-[560px] max-h-[72vh] rounded-2xl shadow-2xl shadow-black/30 flex flex-col overflow-hidden animate-modal-in">
+    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-6 bg-black/50 backdrop-blur-sm">
+      <div className="bg-surface border border-separator w-full max-w-[560px] max-h-[85vh] md:max-h-[72vh] rounded-t-2xl md:rounded-2xl shadow-2xl shadow-black/30 flex flex-col overflow-hidden animate-modal-in">
         <div className="flex items-center justify-between px-5 py-4 border-b border-separator">
           <h2 className="text-[16px] font-semibold tracking-[-0.01em]">Discover Agents</h2>
           <button
@@ -132,7 +132,7 @@ export function ModelDiscoveryModal({ isOpen, onClose }: ModelDiscoveryModalProp
             className="w-full bg-surface-light rounded-lg border border-separator px-3.5 py-2 text-[14px] focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/20 placeholder:text-muted transition-all duration-150"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            autoFocus
+            autoFocus={typeof window !== "undefined" && window.innerWidth >= 768}
           />
           <button
             onClick={() => setFreeOnly(!freeOnly)}

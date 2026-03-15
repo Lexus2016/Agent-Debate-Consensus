@@ -50,7 +50,7 @@ export function MessageList({ onBoost }: Props) {
   }, [messages, typingModels, isAtBottom]);
 
   return (
-    <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-5 py-5 relative">
+    <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-3 py-3 md:px-5 md:py-5 relative">
       {messages.length === 0 ? (
         activeModels.length === 0 ? (
           /* No agents active — primary onboarding state */
@@ -66,7 +66,7 @@ export function MessageList({ onBoost }: Props) {
               </p>
 
               {/* How it works — 2×2 process cards */}
-              <div className="grid grid-cols-2 gap-2 mb-5 text-left">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-5 text-left">
                 {[
                   {
                     step: "01",
@@ -182,7 +182,8 @@ export function MessageList({ onBoost }: Props) {
                 Activate agents to begin
               </h2>
               <p className="text-[13px] text-muted leading-relaxed">
-                Click any agent in the sidebar to add it to the debate. You need at least one.
+                <span className="md:hidden">Tap the menu button (☰) to open the sidebar and activate agents.</span>
+                <span className="hidden md:inline">Click any agent in the sidebar to add it to the debate. You need at least one.</span>
               </p>
             </div>
           </div>
