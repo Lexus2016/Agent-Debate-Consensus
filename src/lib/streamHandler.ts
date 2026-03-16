@@ -9,7 +9,7 @@ const activeControllers = new Map<string, AbortController>();
 
 function getApiKeyHeader(): Record<string, string> {
   if (typeof window === "undefined") return {};
-  const key = sessionStorage.getItem("openrouter-api-key");
+  const key = localStorage.getItem("openrouter-api-key");
   return key ? { "x-api-key": key } : {};
 }
 

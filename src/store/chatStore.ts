@@ -171,12 +171,12 @@ export const useChatStore = create<ChatState>()(
       setFreeModelIds: (ids) => set({ freeModelIds: ids, freeModelsLoadedAt: Date.now() }),
 
       setApiKey: (key) => {
-        sessionStorage.setItem("openrouter-api-key", key);
+        localStorage.setItem("openrouter-api-key", key);
         set({ apiKey: key });
       },
 
       clearApiKey: () => {
-        sessionStorage.removeItem("openrouter-api-key");
+        localStorage.removeItem("openrouter-api-key");
         set({ apiKey: null });
       },
 
@@ -341,10 +341,16 @@ export const useChatStore = create<ChatState>()(
         }),
 
       deleteSession: (id) =>
-        set((state) => ({
-          sessions: state.sessions.filter((s) => s.id !== id),
-          currentSessionId: state.currentSessionId === id ? null : state.currentSessionId,
-        })),
+        set((state) => {
+          const isCurrent = state.currentSessionId === id;
+          return {
+            sessions: state.sessions.filter((s) => s.id !== id),
+            currentSessionId: isCurrent ? null : state.currentSessionId,
+            ...(isCurrent
+              ? { messages: [], typingModels: [], failedModels: {}, contextSummary: null }
+              : {}),
+          };
+        }),
 
       newDebate: () =>
         set((state) => {

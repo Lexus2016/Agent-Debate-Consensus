@@ -55,12 +55,10 @@ export function ChatContainer() {
           setMaxActiveModels(data.maxActiveModels);
         }
 
-        // Restore user key from session if applicable
-        if (!data.hasServerKey || data.appMode === "public") {
-          const stored = sessionStorage.getItem("openrouter-api-key");
-          if (stored) {
-            setApiKey(stored);
-          }
+        // Restore user key from localStorage if previously saved
+        const stored = localStorage.getItem("openrouter-api-key");
+        if (stored) {
+          setApiKey(stored);
         }
 
         // In public mode with server key, fetch free model list
@@ -227,8 +225,8 @@ function ChatApp() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(typeof window !== "undefined" && sessionStorage.getItem("openrouter-api-key")
-            ? { "x-api-key": sessionStorage.getItem("openrouter-api-key")! }
+          ...(typeof window !== "undefined" && localStorage.getItem("openrouter-api-key")
+            ? { "x-api-key": localStorage.getItem("openrouter-api-key")! }
             : {}),
         },
         body: JSON.stringify({

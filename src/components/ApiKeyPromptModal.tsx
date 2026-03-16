@@ -181,8 +181,8 @@ export function ApiKeyPromptModal({
               />
             </svg>
             <p className="text-[12px] text-muted leading-relaxed">
-              Your key is stored only in your browser session. Closing the tab
-              erases it.{" "}
+              Your key is stored locally in your browser and persists between
+              sessions.{" "}
               <a
                 href="https://openrouter.ai/keys"
                 target="_blank"
