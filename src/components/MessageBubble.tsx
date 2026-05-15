@@ -9,6 +9,8 @@ import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
+import { useT } from "@/lib/i18n";
+import { Tooltip } from "./Tooltip";
 
 /**
  * Sanitization schema based on GitHub's defaults (allows br, table, a, img, etc.).
@@ -124,6 +126,7 @@ export const MessageBubble = React.memo(function MessageBubble({
   moderatorId,
   onBoost,
 }: Props) {
+  const t = useT();
   const [reasoningOpen, setReasoningOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -237,16 +240,15 @@ export const MessageBubble = React.memo(function MessageBubble({
 
   const avatarLetter = model?.shortName?.[0]?.toUpperCase() ?? "A";
 
-  // System event notifications — centered, muted
+  // System event — editorial rule with mono eyebrow caption, like a press notice
   if (message.role === "system") {
     return (
-      <div className="flex justify-center my-2 animate-fade-in">
-        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-light/50 border border-separator/50">
-          <svg className="w-3 h-3 text-amber-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span className="text-[12px] text-muted">{message.content}</span>
-        </div>
+      <div className="flex items-center justify-center my-5 animate-fade-in gap-3 px-4">
+        <div className="flex-1 h-px bg-[var(--color-rule)] max-w-[160px]" />
+        <span className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-foreground/55 whitespace-nowrap text-center">
+          {message.content}
+        </span>
+        <div className="flex-1 h-px bg-[var(--color-rule)] max-w-[160px]" />
       </div>
     );
   }
@@ -263,29 +265,31 @@ export const MessageBubble = React.memo(function MessageBubble({
   if (isUser) {
     return (
       <div
-        className="flex justify-end mb-3 animate-fade-in group/msg"
+        className="flex justify-end mb-5 animate-fade-in group/msg"
         style={{ contentVisibility: "auto", containIntrinsicSize: "auto 80px" }}
       >
         <div className="max-w-[85%] md:max-w-[72%]">
-          <div className="flex items-center justify-end gap-1.5 mb-1">
-            <button
-              onClick={handleCopy}
-              className="opacity-0 group-hover/msg:opacity-100 touch-visible p-1 rounded-md hover:bg-elevated transition-all duration-150"
-              title="Copy as Markdown"
-            >
-              {copied ? (
-                <svg className="w-3.5 h-3.5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-              ) : (
-                <svg className="w-3.5 h-3.5 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-              )}
-            </button>
-            <span className="text-[12px] text-muted font-medium">You</span>
+          <div className="flex items-baseline justify-end gap-2.5 mb-2">
+            <Tooltip text={t.tooltip.copyAsMarkdown}>
+              <button
+                onClick={handleCopy}
+                aria-label={t.tooltip.copyAsMarkdown}
+                className="opacity-0 group-hover/msg:opacity-100 touch-visible p-1 rounded-sm hover:bg-elevated transition-all duration-150"
+              >
+                {copied ? (
+                  <svg className="w-3.5 h-3.5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : (
+                  <svg className="w-3.5 h-3.5 text-foreground/50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                )}
+              </button>
+            </Tooltip>
+            <span className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-foreground/65 font-medium">You</span>
           </div>
-          <div className="bg-primary text-white rounded-[18px] md:rounded-[20px] rounded-br-md px-3 py-2 md:px-4 md:py-2.5">
+          <div className="bg-primary text-background rounded-md px-4 py-3 md:px-5 md:py-3.5">
             {message.content && (
               <div className="whitespace-pre-wrap leading-[1.6]" style={{ fontSize: `${fontSize}px` }}>
                 {highlightMentions(message.content, uniqueModels, true)}
@@ -326,82 +330,97 @@ export const MessageBubble = React.memo(function MessageBubble({
     );
   }
 
-  // AI messages — full Markdown rendering with collapse
+  // AI messages — editorial column with serif avatar, byline rule, and border-left in model color
+  const modelColor = model?.color ?? "var(--color-foreground)";
+
   return (
     <div
-      className={`flex justify-start mb-3 animate-fade-in group/msg ${isSummary ? "mb-4" : ""}`}
+      className={`flex justify-start mb-6 animate-fade-in group/msg ${isSummary ? "mb-7" : ""}`}
       style={{ contentVisibility: "auto", containIntrinsicSize: "auto 120px" }}
     >
-      <div className={`flex gap-2 md:gap-2.5 ${isSummary ? "max-w-[96%] md:max-w-[85%]" : "max-w-[92%] md:max-w-[78%]"}`}>
+      <div className={`flex gap-3 md:gap-4 ${isSummary ? "max-w-[96%] md:max-w-[88%]" : "max-w-[94%] md:max-w-[82%]"}`}>
+        {/* Avatar — serif initial with halo */}
         <div
-          className={`w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-white text-[11px] md:text-[12px] font-semibold flex-shrink-0 mt-5 ${
-            isSummary ? "ring-2 ring-amber-400/60" : ""
-          }`}
-          style={{ backgroundColor: model?.color ?? "#3a3a3c" }}
+          className="w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center font-display text-[17px] md:text-[19px] font-semibold flex-shrink-0 mt-1"
+          style={{
+            backgroundColor: model?.color ?? "var(--color-muted)",
+            color: "var(--color-background)",
+            boxShadow: isSummary
+              ? `0 0 0 2px rgba(212, 156, 92, 0.55), 0 0 0 4px var(--color-background), 0 6px 16px -8px ${model?.color ?? "rgba(0,0,0,0.4)"}aa`
+              : `0 0 0 1px ${model?.color ?? "#3a3a3c"}55, 0 6px 16px -8px ${model?.color ?? "rgba(0,0,0,0.3)"}88`,
+          }}
         >
           {avatarLetter}
         </div>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
+          {/* Editorial byline */}
+          <div className="flex items-baseline gap-2.5 mb-2 flex-wrap">
             <span
-              className="text-[12px] font-semibold leading-none"
-              style={{ color: model?.color ?? "#98989d" }}
+              className="font-display text-[15px] md:text-[16px] font-medium leading-none tracking-[-0.01em]"
+              style={{ color: modelColor }}
             >
               {message.modelName ?? "Agent"}
             </span>
             {isSummary && (
-              <span className="inline-flex items-center gap-1 text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-400/15 text-amber-400 border border-amber-400/25">
-                <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-                Summary
+              <span className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-amber-400 font-semibold">
+                · summary ·
               </span>
             )}
             {!isSummary && message.modelId === moderatorId && (
-              <span className="text-[9px] text-amber-400" title="Moderator">&#9733; mod</span>
-            )}
-            {!isSummary && model?.thinkingStyle && (
-              <span
-                className="text-[9px] font-medium text-muted/60 uppercase tracking-wider"
-                title={`Thinking style: ${getThinkingStyleLabel(model.thinkingStyle)}`}
-              >
-                {getThinkingStyleLabel(model.thinkingStyle)}
+              <span className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-amber-400 font-semibold">
+                · {t.empty.moderator} ·
               </span>
             )}
-            <button
-              onClick={handleCopy}
-              className="opacity-0 group-hover/msg:opacity-100 touch-visible p-0.5 rounded hover:bg-elevated transition-all duration-150"
-              title="Copy as Markdown"
-            >
-              {copied ? (
-                <svg className="w-3.5 h-3.5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-              ) : (
-                <svg className="w-3.5 h-3.5 text-muted/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-              )}
-            </button>
-            {onBoost && (
+            {!isSummary && model?.thinkingStyle && (
+              <Tooltip text={t.tooltip.thinkingStyle}>
+                <span
+                  aria-label={`${t.tooltip.thinkingStyle}: ${getThinkingStyleLabel(model.thinkingStyle)}`}
+                  className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-foreground/45 cursor-help"
+                >
+                  {getThinkingStyleLabel(model.thinkingStyle)}
+                </span>
+              </Tooltip>
+            )}
+            <div className="flex-1" />
+            <Tooltip text={t.tooltip.copyAsMarkdown} align="end">
               <button
-                onClick={() => onBoost(message.content, message.modelName ?? "Agent")}
-                className="opacity-0 group-hover/msg:opacity-100 touch-visible p-0.5 rounded hover:bg-elevated transition-all duration-150 text-muted/60 hover:text-amber-400"
-                title="Develop this idea further"
+                onClick={handleCopy}
+                aria-label={t.tooltip.copyAsMarkdown}
+                className="opacity-0 group-hover/msg:opacity-100 touch-visible p-1 rounded-sm hover:bg-elevated transition-all duration-150"
               >
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
+                {copied ? (
+                  <svg className="w-3.5 h-3.5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : (
+                  <svg className="w-3.5 h-3.5 text-foreground/45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                )}
               </button>
+            </Tooltip>
+            {onBoost && (
+              <Tooltip text={t.tooltip.boost} align="end">
+                <button
+                  onClick={() => onBoost(message.content, message.modelName ?? "Agent")}
+                  aria-label={t.tooltip.boost}
+                  className="opacity-0 group-hover/msg:opacity-100 touch-visible p-1 rounded-sm hover:bg-elevated transition-all duration-150 text-foreground/45 hover:text-primary"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </button>
+              </Tooltip>
             )}
           </div>
 
+          {/* Reasoning — italic pull-quote */}
           {message.reasoning && (
-            <div className="mb-1.5">
+            <div className="mb-3">
               <button
                 onClick={() => setReasoningOpen(!reasoningOpen)}
-                className="flex items-center gap-1.5 text-[12px] text-muted hover:text-foreground transition-colors duration-150"
+                className="flex items-center gap-1.5 font-mono text-[10.5px] uppercase tracking-[0.18em] text-foreground/55 hover:text-foreground transition-colors duration-150"
               >
                 <svg
                   className={`w-3 h-3 transition-transform duration-150 ${reasoningOpen ? "rotate-90" : ""}`}
@@ -412,29 +431,31 @@ export const MessageBubble = React.memo(function MessageBubble({
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                 </svg>
-                Thinking...
+                Thinking aloud
               </button>
               {reasoningOpen && (
-                <div className="mt-1.5 ml-4 pl-3 border-l border-separator text-[13px] text-muted italic leading-relaxed">
+                <div className="mt-2 pl-4 border-l-2 border-[var(--color-rule)] font-display italic text-[14px] md:text-[15px] text-foreground/65 leading-relaxed">
                   {message.reasoning}
                 </div>
               )}
             </div>
           )}
 
+          {/* Body — editorial column with model-color rule, no boxy bubble */}
           <div
-            className={`rounded-[18px] md:rounded-[20px] rounded-tl-md px-3 py-2 md:px-4 md:py-2.5 relative ${
+            className={`relative pl-4 md:pl-5 border-l-2 transition-colors ${
               isLongMessage ? "cursor-pointer" : ""
-            } ${
-              isSummary
-                ? "bg-amber-400/[0.04] border-l-[3px] border-l-amber-400/60 border border-amber-400/15"
-                : "bg-surface-light border border-separator"
-            }`}
+            } ${isSummary ? "py-2 -my-1 bg-amber-400/[0.05] pr-3" : ""}`}
+            style={{
+              borderLeftColor: isSummary
+                ? "rgba(212, 156, 92, 0.6)"
+                : `${model?.color ?? "var(--color-rule)"}55`,
+            }}
             onClick={() => { if (isLongMessage) setExpanded(!expanded); }}
           >
             <div
               ref={contentRef}
-              className={`markdown-body leading-[1.6] text-foreground transition-all duration-200 ${
+              className={`markdown-body leading-[1.65] text-foreground/90 transition-all duration-200 ${
                 isLongMessage && !expanded ? "overflow-hidden" : ""
               }`}
               style={{
@@ -450,17 +471,17 @@ export const MessageBubble = React.memo(function MessageBubble({
                 {message.content}
               </ReactMarkdown>
               {message.isStreaming && (
-                <span className="inline-block w-[2px] h-[1.1em] bg-foreground/50 animate-blink ml-0.5 align-text-bottom" />
+                <span
+                  className="inline-block w-[2px] h-[1.1em] animate-blink ml-0.5 align-text-bottom"
+                  style={{ backgroundColor: modelColor }}
+                />
               )}
             </div>
 
             {/* Gradient fade when collapsed */}
             {isLongMessage && !expanded && (
-              <div className="absolute bottom-0 left-0 right-0 h-16 rounded-b-[20px] pointer-events-none">
-                <div className="w-full h-full bg-gradient-to-t from-surface-light to-transparent" />
-                {isSummary && (
-                  <div className="absolute inset-0 bg-gradient-to-t from-amber-400/[0.04] to-transparent" />
-                )}
+              <div className="absolute bottom-0 left-0 right-0 h-16 pointer-events-none">
+                <div className="w-full h-full bg-gradient-to-t from-[var(--color-background)] to-transparent" />
               </div>
             )}
           </div>

@@ -113,8 +113,14 @@ export interface ChatState {
   sessions: DebateSession[];
   currentSessionId: string | null;
   webSearchEnabled: boolean;
+  pendingDraft: string | null;
+  locale: "en" | "uk" | "ru" | null;
+  showLanding: boolean;
   setTemperature: (preset: TemperaturePreset) => void;
   setWebSearch: (enabled: boolean) => void;
+  setPendingDraft: (text: string | null) => void;
+  setLocale: (locale: "en" | "uk" | "ru") => void;
+  setShowLanding: (show: boolean) => void;
   saveCurrentSession: () => void;
   loadSession: (id: string) => void;
   deleteSession: (id: string) => void;

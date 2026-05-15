@@ -1,102 +1,204 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #0c0c0c;
-  --color-foreground: #f5f5f7;
-  --color-primary: #bf5af2;
-  --color-primary-hover: #a84ad6;
-  --color-primary-light: #d18ff5;
-  --color-surface: #1c1c1e;
-  --color-surface-light: #2c2c2e;
-  --color-surface-hover: #3a3a3c;
-  --color-surface-dark: #0c0c0c;
-  --color-muted: #aeaeb2;
-  --color-border: #38383a;
-  --color-accent: #0a84ff;
-  --color-separator: rgba(255, 255, 255, 0.10);
-  --color-elevated: rgba(255, 255, 255, 0.08);
+  /* ── Editorial broadsheet palette ─────────────────────────────
+     Deep ink paper • warm parchment text • cinnabar primary
+     Gold secondary accent • generous editorial rule lines
+  */
+  --color-background: #11131a;
+  --color-foreground: #ede4ce;
+  --color-primary: #cf3e1c;
+  --color-primary-hover: #b53517;
+  --color-primary-light: #e25e3e;
+  --color-surface: #1a1d26;
+  --color-surface-light: #232732;
+  --color-surface-hover: #2c313e;
+  --color-surface-dark: #0d0f15;
+  --color-muted: #a8a08d;
+  --color-border: #2a2f3a;
+  --color-accent: #c9a96e;
+  --color-separator: rgba(237, 228, 206, 0.08);
+  --color-elevated: rgba(237, 228, 206, 0.05);
+  --color-rule: #2a2f3a;
+
+  /* ── Typography stack ─────────────────────────────────────────
+     Display: Fraunces (variable, opsz 144, soft 50)
+     Body:    Spectral (transitional serif for screens)
+     Mono:    JetBrains Mono (system labels, code, captions)
+  */
+  --font-display: var(--font-fraunces), "Bodoni 72", Didot, Georgia, serif;
+  --font-body: var(--font-spectral), Georgia, "Times New Roman", serif;
+  --font-mono: var(--font-jetbrains), "JetBrains Mono", "SF Mono", Menlo, monospace;
 }
 
-/* Light theme overrides */
+/* Light theme — e-paper / e-ink display feel.
+   Neutral warm cream (no yellow tint), graphite ink, brick accent.
+   Type tuned for cream paper: deeper ink primary + confident muted so
+   opacity-derived shades (foreground/55, /65, /70) stay readable in italic Fraunces.
+*/
 [data-theme="light"] {
-  --color-background: #ffffff;
-  --color-foreground: #1c1c1e;
-  --color-primary: #bf5af2;
-  --color-primary-hover: #a84ad6;
-  --color-primary-light: #9d4edd;
-  --color-surface: #f2f2f7;
-  --color-surface-light: #e5e5ea;
-  --color-surface-hover: #d1d1d6;
-  --color-surface-dark: #f2f2f7;
-  --color-muted: #636366;
-  --color-border: #c6c6c8;
-  --color-accent: #007aff;
-  --color-separator: rgba(0, 0, 0, 0.12);
-  --color-elevated: rgba(0, 0, 0, 0.06);
+  --color-background: #f1efe7;
+  --color-foreground: #181610;        /* deep warm ink, properly black-but-warm */
+  --color-primary: #ad3517;           /* brick cinnabar — saturated enough on cream */
+  --color-primary-hover: #842810;
+  --color-primary-light: #c64929;
+  --color-surface: #e6e2d4;
+  --color-surface-light: #dad6c5;
+  --color-surface-hover: #c8c2ad;
+  --color-surface-dark: #f1efe7;
+  --color-muted: #4a4232;              /* confident brown-graphite for secondary */
+  --color-border: #b7b09c;
+  --color-accent: #5a5142;
+  --color-separator: rgba(24, 22, 16, 0.18);
+  --color-elevated: rgba(24, 22, 16, 0.07);
+  --color-rule: #aea693;
+}
+
+/* Light theme — italic Fraunces gets slightly heavier weight so it doesn't disappear on cream */
+[data-theme="light"] .font-display em,
+[data-theme="light"] em.font-display,
+[data-theme="light"] .pullquote {
+  font-weight: 500;
+}
+[data-theme="light"] .font-display.italic,
+[data-theme="light"] em[style*="WONK"] {
+  font-weight: 400;
+  font-variation-settings: "SOFT" 100, "WONK" 0, "opsz" 144;
 }
 
 body {
   background: var(--color-background);
   color: var(--color-foreground);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
+  font-family: var(--font-body);
+  font-feature-settings: "kern", "liga", "calt";
+  font-size: 17px;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  position: relative;
+}
+
+/* Subtle paper grain — atmosphere without distraction.
+   z-index -1 keeps it behind content without forcing every body child
+   into a new stacking context (which broke fixed-position modals). */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml;utf8,%3Csvg viewBox='0 0 240 240' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.92' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+
+[data-theme="light"] body::before {
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+}
+
+/* ── Utility classes ───────────────────────────────────────── */
+
+.font-display {
+  font-family: var(--font-display);
+  font-variation-settings: "SOFT" 50, "WONK" 0, "opsz" 144;
+  font-feature-settings: "ss01", "kern", "liga", "dlig";
+  letter-spacing: -0.02em;
+}
+
+.font-display-tight {
+  font-family: var(--font-display);
+  font-variation-settings: "SOFT" 30, "WONK" 0, "opsz" 144;
+  letter-spacing: -0.028em;
+}
+
+.font-body {
+  font-family: var(--font-body);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+  font-feature-settings: "ss01", "ss02", "zero";
+  letter-spacing: 0;
+}
+
+/* Editorial eyebrow — small uppercase mono label */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  font-weight: 500;
+}
+
+/* Editorial rule */
+.rule {
+  height: 1px;
+  background: var(--color-rule);
+  width: 100%;
+}
+
+.rule-thick {
+  height: 2px;
+  background: var(--color-foreground);
+  width: 100%;
+  opacity: 0.85;
+}
+
+/* Pull-quote — italic Fraunces */
+.pullquote {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 144;
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+}
+
+/* Drop cap */
+.drop-cap::first-letter {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 3.4em;
+  line-height: 0.84;
+  float: left;
+  margin: 0.06em 0.1em 0 -0.04em;
+  color: var(--color-primary);
 }
 
 ::selection {
-  background: rgba(191, 90, 242, 0.3);
+  background: rgba(207, 62, 28, 0.34);
+  color: var(--color-foreground);
 }
-
 [data-theme="light"] ::selection {
-  background: rgba(191, 90, 242, 0.2);
+  background: rgba(207, 62, 28, 0.25);
+  color: var(--color-foreground);
 }
 
-/* Scrollbar — dark */
+/* Scrollbar */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+  scrollbar-color: var(--color-rule) transparent;
 }
-
-::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 4px;
-  border: 2px solid transparent;
+  background: var(--color-rule);
+  border: 3px solid transparent;
   background-clip: content-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.22);
-  border: 2px solid transparent;
+  background: var(--color-muted);
+  border: 3px solid transparent;
   background-clip: content-box;
 }
 
-/* Scrollbar — light */
-[data-theme="light"] * {
-  scrollbar-color: rgba(0, 0, 0, 0.18) transparent;
-}
-
-[data-theme="light"] ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.15);
-  border: 2px solid transparent;
-  background-clip: content-box;
-}
-[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.25);
-  border: 2px solid transparent;
-  background-clip: content-box;
-}
-
-/* Sidebar vibrancy — dark */
+/* Sidebar — solid paper, no glass */
 .vibrancy {
-  background: rgba(28, 28, 30, 0.78);
-  backdrop-filter: saturate(180%) blur(20px);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
-}
-
-/* Sidebar vibrancy — light */
-[data-theme="light"] .vibrancy {
-  background: rgba(242, 242, 247, 0.82);
+  background: var(--color-surface-dark);
+  border-right: 1px solid var(--color-rule);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .gradient-text {
@@ -106,7 +208,13 @@ body {
   background-clip: text;
 }
 
-/* Animations */
+/* Buttons get a tighter shadow + crisp edge */
+button, [role="button"] {
+  letter-spacing: 0;
+}
+
+/* ── Animations ───────────────────────────────────────────── */
+
 @keyframes blink {
   0%, 50% { opacity: 1; }
   51%, 100% { opacity: 0; }
@@ -122,33 +230,38 @@ body {
 .animate-bounce-dot-delay-2 { animation: bounce-dot 1.4s infinite ease-in-out 0.32s; }
 
 @keyframes fade-in {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.animate-fade-in { animation: fade-in 0.2s ease-out forwards; }
+.animate-fade-in { animation: fade-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
 
 @keyframes modal-in {
-  from { opacity: 0; transform: scale(0.97) translateY(6px); }
+  from { opacity: 0; transform: scale(0.97) translateY(8px); }
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
-.animate-modal-in { animation: modal-in 0.2s ease-out forwards; }
+.animate-modal-in { animation: modal-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
 
 @keyframes nudge-left {
   0%, 100% { transform: translateX(0); opacity: 0.6; }
   40% { transform: translateX(-5px); opacity: 1; }
-  60% { transform: translateX(-3px); opacity: 0.9; }
 }
 
 @keyframes pulse-dot {
   0%, 100% { opacity: 0.25; transform: scale(1); }
-  50% { opacity: 0.8; transform: scale(1.2); }
+  50% { opacity: 0.85; transform: scale(1.2); }
 }
 
-/* ── Mobile-responsive utilities ── */
+@keyframes stagger-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.stagger-up { animation: stagger-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
 
-/* Touch devices: make hover-dependent buttons always visible */
+@keyframes ticker {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
 @media (hover: none) and (pointer: coarse) {
-  .touch-visible {
-    opacity: 1 !important;
-  }
+  .touch-visible { opacity: 1 !important; }
 }

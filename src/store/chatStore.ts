@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import { ChatState, Model, Message, Theme, AppMode, TemperaturePreset, DebateSession, ThinkingStyle } from "@/types/chat";
 import { availableModels as defaultModels } from "@/lib/models";
 import { assignThinkingStyle } from "@/lib/conversationEngine";
+import { getDict } from "@/lib/i18n";
 
 export const useChatStore = create<ChatState>()(
   persist(
@@ -28,6 +29,9 @@ export const useChatStore = create<ChatState>()(
       sessions: [],
       currentSessionId: null,
       webSearchEnabled: false,
+      pendingDraft: null,
+      locale: null,
+      showLanding: false,
 
       addMessage: (message) => {
         const id = uuidv4();
@@ -144,13 +148,17 @@ export const useChatStore = create<ChatState>()(
           const findName = (id: string | null) =>
             id ? state.availableModels.find((m) => m.id === id)?.name ?? id : null;
 
+          const dict = getDict(state.locale);
           let text: string;
           if (!modelId) {
-            text = `Moderator changed: ${findName(prevId)} → You (human)`;
+            text = dict.system.modChangedToHuman(findName(prevId) ?? "");
           } else if (!prevId) {
-            text = `Moderator assigned: ${findName(modelId)}`;
+            text = dict.system.modAssigned(findName(modelId) ?? "");
           } else {
-            text = `Moderator changed: ${findName(prevId)} → ${findName(modelId)}`;
+            text = dict.system.modChangedBetween(
+              findName(prevId) ?? "",
+              findName(modelId) ?? "",
+            );
           }
 
           const notification: Message = {
@@ -200,9 +208,10 @@ export const useChatStore = create<ChatState>()(
               : null;
 
             const failedName = state.availableModels.find((m) => m.id === modelId)?.name ?? modelId;
+            const dict = getDict(state.locale);
             const text = newMod
-              ? `Moderator auto-reassigned: ${failedName} (failed) → ${newMod.name}`
-              : `Moderator removed: ${failedName} failed, no candidates available`;
+              ? dict.system.modAutoReassigned(failedName, newMod.name)
+              : dict.system.modRemoved(failedName);
 
             const notification: Message = {
               id: uuidv4(),
@@ -231,6 +240,12 @@ export const useChatStore = create<ChatState>()(
       setTemperature: (preset) => set({ temperature: preset }),
 
       setWebSearch: (enabled) => set({ webSearchEnabled: enabled }),
+
+      setPendingDraft: (text) => set({ pendingDraft: text }),
+
+      setLocale: (locale) => set({ locale }),
+
+      setShowLanding: (show) => set({ showLanding: show }),
 
       saveCurrentSession: () =>
         set((state) => {
@@ -416,6 +431,7 @@ export const useChatStore = create<ChatState>()(
         temperature: state.temperature,
         webSearchEnabled: state.webSearchEnabled,
         contextSummary: state.contextSummary,
+        locale: state.locale,
       }),
       onRehydrateStorage: () => (state) => {
         if (state) {

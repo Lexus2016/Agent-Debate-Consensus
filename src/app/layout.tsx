@@ -1,12 +1,36 @@
 import type { Metadata } from "next";
+import { Fraunces, Spectral, JetBrains_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import "./globals.css";
+
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  style: ["normal", "italic"],
+  display: "swap",
+  variable: "--font-fraunces",
+});
+
+const spectral = Spectral({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  style: ["normal", "italic"],
+  display: "swap",
+  variable: "--font-spectral",
+});
+
+const jetbrains = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+  variable: "--font-jetbrains",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://lryq.com"),
   title: "Agent Debate — Multi-Agent AI Debate Platform",
   description:
-    "Pick 2–5 AI models, pose a question, and watch them argue in real time. Steer the discussion and drive toward consensus. Powered by OpenRouter.",
+    "Put 2–5 AI models in one room. Pose a question. Watch them argue in real time. You moderate, steer, and drive toward consensus.",
   keywords: [
     "AI debate",
     "multi-agent AI",
@@ -15,17 +39,14 @@ export const metadata: Metadata = {
     "OpenRouter",
     "multi-model chat",
     "agent debate",
-    "GPT-4 vs Claude",
+    "GPT vs Claude",
     "AI comparison tool",
   ],
-  robots: {
-    index: true,
-    follow: true,
-  },
+  robots: { index: true, follow: true },
   openGraph: {
     title: "Agent Debate — Multi-Agent AI Debate Platform",
     description:
-      "Pick 2–5 AI models, pose a question, and watch them argue in real time. Steer the discussion and drive toward consensus.",
+      "Put 2–5 AI models in one room. Pose a question. Watch them argue. You moderate.",
     url: "https://lryq.com",
     siteName: "Agent Debate",
     type: "website",
@@ -36,7 +57,7 @@ export const metadata: Metadata = {
     card: "summary",
     title: "Agent Debate — Multi-Agent AI Debate Platform",
     description:
-      "Pick 2–5 AI models, pose a question, and watch them argue in real time. Steer the discussion and drive toward consensus.",
+      "Put 2–5 AI models in one room. Pose a question. Watch them argue. You moderate.",
     images: ["/icon-512.png"],
   },
 };
@@ -47,9 +68,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" data-theme="dark" suppressHydrationWarning>
+    <html
+      lang="en"
+      data-theme="dark"
+      suppressHydrationWarning
+      className={`${fraunces.variable} ${spectral.variable} ${jetbrains.variable}`}
+    >
       <head>
-        {/* Prevent flash of wrong theme by reading persisted state before React hydrates */}
         <script
           dangerouslySetInnerHTML={{
             __html: `try{var s=JSON.parse(localStorage.getItem("chat-storage")||"{}");var t=s&&s.state&&s.state.theme||"dark";document.documentElement.setAttribute("data-theme",t)}catch(e){}`,

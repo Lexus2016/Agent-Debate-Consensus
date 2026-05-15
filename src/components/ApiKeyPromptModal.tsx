@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useChatStore } from "@/store/chatStore";
+import { useT } from "@/lib/i18n";
+import { Tooltip } from "./Tooltip";
 
 interface ApiKeyPromptModalProps {
   isOpen: boolean;
@@ -17,6 +19,7 @@ export function ApiKeyPromptModal({
   reason,
   modelName,
 }: ApiKeyPromptModalProps) {
+  const t = useT();
   const [key, setKey] = useState("");
   const [error, setError] = useState("");
   const [validating, setValidating] = useState(false);
@@ -53,7 +56,7 @@ export function ApiKeyPromptModal({
       });
 
       if (!res.ok) {
-        setError("Invalid API key. Please check and try again.");
+        setError(t.modal.apiKey.errorBadKey);
         setValidating(false);
         return;
       }
@@ -61,7 +64,7 @@ export function ApiKeyPromptModal({
       setApiKey(trimmed);
       onClose();
     } catch {
-      setError("Failed to validate key. Please try again.");
+      setError(t.modal.apiKey.errorNet);
       setValidating(false);
     }
   };
@@ -76,14 +79,16 @@ export function ApiKeyPromptModal({
   if (!isOpen) return null;
 
   const title =
-    reason === "proactive" ? "Add API Key" : "API Key Required";
+    reason === "proactive"
+      ? t.modal.apiKey.titleProactive
+      : t.modal.apiKey.titleRequired;
 
   const description =
     reason === "paid-model"
-      ? `${modelName || "This model"} is a paid model. Enter your OpenRouter API key to unlock paid models, web search, and unlimited access.`
+      ? t.modal.apiKey.descPaidModel(modelName ?? "This model")
       : reason === "proactive"
-        ? "Add your OpenRouter API key to unlock all models, web search, and avoid rate limits on free models."
-        : "Web search requires an API key. Enter your OpenRouter key to enable web search, paid models, and unlimited access.";
+        ? t.modal.apiKey.descProactive
+        : t.modal.apiKey.descWebSearch;
 
   return createPortal(
     <div
@@ -115,24 +120,27 @@ export function ApiKeyPromptModal({
               {title}
             </h2>
           </div>
-          <button
-            onClick={onClose}
-            className="w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-foreground hover:bg-elevated transition-colors duration-150"
-          >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
+          <Tooltip text={t.tooltip.closeModal} align="end">
+            <button
+              onClick={onClose}
+              aria-label={t.tooltip.closeModal}
+              className="w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-foreground hover:bg-elevated transition-colors duration-150"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </Tooltip>
         </div>
 
         {/* Body */}
@@ -162,7 +170,7 @@ export function ApiKeyPromptModal({
             disabled={!key.trim() || validating}
             className="w-full h-10 rounded-xl bg-primary text-white text-[14px] font-medium transition-all duration-150 hover:bg-primary-hover active:scale-[0.98] disabled:opacity-30 disabled:cursor-not-allowed"
           >
-            {validating ? "Validating..." : "Connect"}
+            {validating ? t.modal.apiKey.validating : t.modal.apiKey.connect}
           </button>
 
           {/* Privacy + link */}
@@ -181,15 +189,14 @@ export function ApiKeyPromptModal({
               />
             </svg>
             <p className="text-[12px] text-muted leading-relaxed">
-              Your key is stored locally in your browser and persists between
-              sessions.{" "}
+              {t.modal.apiKey.privacy}{" "}
               <a
                 href="https://openrouter.ai/keys"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-primary hover:underline"
               >
-                Get an API key
+                {t.modal.apiKey.getKey}
               </a>
             </p>
           </div>

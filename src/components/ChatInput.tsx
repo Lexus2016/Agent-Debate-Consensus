@@ -3,7 +3,9 @@
 import { useState, useRef, useEffect } from "react";
 import { useChatStore } from "@/store/chatStore";
 import { Model, FileAttachment } from "@/types/chat";
+import { useT } from "@/lib/i18n";
 import { ApiKeyPromptModal } from "./ApiKeyPromptModal";
+import { Tooltip } from "./Tooltip";
 
 const MAX_FILE_SIZE = 100 * 1024; // 100 KB
 const ALLOWED_EXTENSIONS = [
@@ -27,6 +29,7 @@ interface Props {
 }
 
 export function ChatInput({ onSend, onStop, disabled, isGenerating }: Props) {
+  const t = useT();
   const [input, setInput] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [focused, setFocused] = useState(false);
@@ -42,6 +45,8 @@ export function ChatInput({ onSend, onStop, disabled, isGenerating }: Props) {
   const [keyPromptOpen, setKeyPromptOpen] = useState(false);
 
   const { activeModels, availableModels, webSearchEnabled, setWebSearch } = useChatStore();
+  const pendingDraft = useChatStore((state) => state.pendingDraft);
+  const setPendingDraft = useChatStore((state) => state.setPendingDraft);
   const appMode = useChatStore((state) => state.appMode);
   const hasServerKey = useChatStore((state) => state.hasServerKey);
   const apiKey = useChatStore((state) => state.apiKey);
@@ -75,6 +80,15 @@ export function ChatInput({ onSend, onStop, disabled, isGenerating }: Props) {
       )}px`;
     }
   }, [input]);
+
+  // Consume starter-chip draft from store (fired by MessageList empty state)
+  useEffect(() => {
+    if (pendingDraft !== null && pendingDraft.length > 0) {
+      setInput(pendingDraft);
+      setPendingDraft(null);
+      requestAnimationFrame(() => textareaRef.current?.focus());
+    }
+  }, [pendingDraft, setPendingDraft]);
 
   // Detect @mention at cursor position
   const detectMention = (value: string, cursorPos: number) => {
@@ -266,11 +280,11 @@ export function ChatInput({ onSend, onStop, disabled, isGenerating }: Props) {
         )}
 
         <div
-          className={`flex items-center gap-2 bg-surface-light rounded-[14px] border px-3 py-2 transition-all duration-150 ${
+          className={`flex items-center gap-2 bg-surface-light border-t-2 border-x-0 border-b-0 px-4 py-3 transition-all duration-200 ${
             focused
-              ? "border-primary/40 ring-1 ring-primary/20"
-              : "border-separator"
-          } ${disabled ? "opacity-30 cursor-not-allowed" : ""}`}
+              ? "border-primary"
+              : "border-[var(--color-rule)]"
+          } ${disabled ? "opacity-40 cursor-not-allowed" : ""}`}
         >
           <textarea
             ref={textareaRef}
@@ -280,75 +294,91 @@ export function ChatInput({ onSend, onStop, disabled, isGenerating }: Props) {
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
             placeholder={
-              disabled
-                ? "Select agents to begin..."
-                : "Message... (use @Model to mention)"
+              disabled ? t.input.placeholderDisabled : t.input.placeholderActive
             }
             disabled={disabled}
             rows={1}
             enterKeyHint="send"
             autoComplete="off"
-            className="flex-1 bg-transparent text-[15px] md:text-[15px] text-base leading-[1.5] resize-none focus:outline-none disabled:cursor-not-allowed placeholder:text-muted py-0.5"
+            className="flex-1 bg-transparent text-[18px] md:text-[19px] leading-[1.55] resize-none focus:outline-none disabled:cursor-not-allowed placeholder:text-foreground/40 placeholder:italic py-1 font-body"
           />
 
           <div className="flex items-center gap-1.5 flex-shrink-0 pb-0.5">
-            {/* File attach button */}
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={disabled}
-              className="w-[30px] h-[30px] flex items-center justify-center rounded-full text-muted/40 hover:text-muted hover:bg-surface-hover transition-all duration-200 disabled:opacity-20 disabled:cursor-not-allowed"
-              title="Attach file (txt, md, csv, json, code — max 100 KB)"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-              </svg>
-            </button>
-
-            <button
-              onClick={() => {
-                if (webSearchBlocked) {
-                  setKeyPromptOpen(true);
-                  return;
-                }
-                setWebSearch(!webSearchEnabled);
-              }}
-              title={webSearchBlocked ? "Web search — requires API key" : webSearchEnabled ? "Web search ON" : "Web search OFF"}
-              className={`w-[30px] h-[30px] flex items-center justify-center rounded-full transition-all duration-200 ${
-                webSearchEnabled
-                  ? "bg-primary/15 text-primary ring-1 ring-primary/30"
-                  : "text-muted/40 hover:text-muted hover:bg-surface-hover"
-              }`}
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                <circle cx="12" cy="12" r="10" />
-                <path d="M2 12h20" />
-                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-                {!webSearchEnabled && (
-                  <line x1="4" y1="4" x2="20" y2="20" strokeWidth={2} strokeLinecap="round" />
-                )}
-              </svg>
-            </button>
-            {isGenerating && (
+            {/* File attach */}
+            <Tooltip text={t.tooltip.attachFile} align="end">
               <button
-                onClick={onStop}
-                title="Stop generation"
-                className="w-[30px] h-[30px] flex items-center justify-center rounded-full bg-surface-hover text-muted hover:text-foreground transition-colors duration-150"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={disabled}
+                aria-label={t.tooltip.attachFile}
+                className="w-[30px] h-[30px] flex items-center justify-center rounded-full text-muted/40 hover:text-muted hover:bg-surface-hover transition-all duration-200 disabled:opacity-20 disabled:cursor-not-allowed"
               >
-                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                  <rect x="6" y="6" width="12" height="12" rx="2" />
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                 </svg>
               </button>
-            )}
-            <button
-              onClick={handleSubmit}
-              disabled={(!input.trim() && !pendingFile) || disabled}
-              title="Send message"
-              className="w-[30px] h-[30px] flex items-center justify-center rounded-full bg-primary text-white transition-all duration-150 disabled:opacity-20 disabled:cursor-not-allowed hover:bg-primary-hover active:scale-95"
+            </Tooltip>
+
+            <Tooltip
+              text={
+                webSearchBlocked
+                  ? t.tooltip.webSearchNeedsKey
+                  : webSearchEnabled
+                    ? t.tooltip.webSearchOn
+                    : t.tooltip.webSearchOff
+              }
+              align="end"
             >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
-              </svg>
-            </button>
+              <button
+                onClick={() => {
+                  if (webSearchBlocked) {
+                    setKeyPromptOpen(true);
+                    return;
+                  }
+                  setWebSearch(!webSearchEnabled);
+                }}
+                aria-label={webSearchEnabled ? t.tooltip.webSearchOn : t.tooltip.webSearchOff}
+                aria-pressed={webSearchEnabled}
+                className={`w-[30px] h-[30px] flex items-center justify-center rounded-full transition-all duration-200 ${
+                  webSearchEnabled
+                    ? "bg-primary/15 text-primary ring-1 ring-primary/30"
+                    : "text-muted/40 hover:text-muted hover:bg-surface-hover"
+                }`}
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M2 12h20" />
+                  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                  {!webSearchEnabled && (
+                    <line x1="4" y1="4" x2="20" y2="20" strokeWidth={2} strokeLinecap="round" />
+                  )}
+                </svg>
+              </button>
+            </Tooltip>
+            {isGenerating && (
+              <Tooltip text={t.tooltip.stop} align="end">
+                <button
+                  onClick={onStop}
+                  aria-label={t.tooltip.stop}
+                  className="w-[30px] h-[30px] flex items-center justify-center rounded-full bg-surface-hover text-muted hover:text-foreground transition-colors duration-150"
+                >
+                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                    <rect x="6" y="6" width="12" height="12" rx="2" />
+                  </svg>
+                </button>
+              </Tooltip>
+            )}
+            <Tooltip text={t.tooltip.send} align="end">
+              <button
+                onClick={handleSubmit}
+                disabled={(!input.trim() && !pendingFile) || disabled}
+                aria-label={t.tooltip.send}
+                className="w-[30px] h-[30px] flex items-center justify-center rounded-full bg-primary text-white transition-all duration-150 disabled:opacity-20 disabled:cursor-not-allowed hover:bg-primary-hover active:scale-95"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
+                </svg>
+              </button>
+            </Tooltip>
           </div>
         </div>
       </div>

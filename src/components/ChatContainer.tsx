@@ -23,6 +23,9 @@ import { ChatInput } from "./ChatInput";
 import { ModelSelector } from "./ModelSelector";
 import { WelcomeScreen } from "./WelcomeScreen";
 import { ApiKeyPromptModal } from "./ApiKeyPromptModal";
+import { LocaleSwitcher } from "./LocaleSwitcher";
+import { Tooltip } from "./Tooltip";
+import { useT, detectLocale } from "@/lib/i18n";
 import { Message, TemperaturePreset, FileAttachment } from "@/types/chat";
 
 const TEMP_MAP: Record<TemperaturePreset, number> = {
@@ -32,6 +35,16 @@ const TEMP_MAP: Record<TemperaturePreset, number> = {
 };
 
 export function ChatContainer() {
+  // Auto-detect interface language from browser on first launch.
+  // User can override via LocaleSwitcher; preference is persisted.
+  const locale = useChatStore((state) => state.locale);
+  const setLocale = useChatStore((state) => state.setLocale);
+  useEffect(() => {
+    if (locale === null) {
+      setLocale(detectLocale());
+    }
+  }, [locale, setLocale]);
+
   const setAppMode = useChatStore((state) => state.setAppMode);
   const setHasServerKey = useChatStore((state) => state.setHasServerKey);
   const setFreeModelIds = useChatStore((state) => state.setFreeModelIds);
@@ -40,6 +53,7 @@ export function ChatContainer() {
   const setApiKey = useChatStore((state) => state.setApiKey);
   const setMaxActiveModels = useChatStore((state) => state.setMaxActiveModels);
   const freeModelsLoadedAt = useChatStore((state) => state.freeModelsLoadedAt);
+  const showLanding = useChatStore((state) => state.showLanding);
 
   const [configLoaded, setConfigLoaded] = useState(false);
 
@@ -96,9 +110,9 @@ export function ChatContainer() {
     );
   }
 
-  // Show WelcomeScreen only when there is no server key AND no user key
+  // Show WelcomeScreen when there is no key OR user explicitly clicked the logo.
   const noKeyAvailable = !hasServerKey && !apiKey;
-  if (noKeyAvailable) {
+  if (noKeyAvailable || showLanding) {
     return <WelcomeScreen />;
   }
 
@@ -106,6 +120,7 @@ export function ChatContainer() {
 }
 
 function ChatApp() {
+  const t = useT();
   const addMessage = useChatStore((state) => state.addMessage);
   const updateMessage = useChatStore((state) => state.updateMessage);
   const completeMessage = useChatStore((state) => state.completeMessage);
@@ -117,6 +132,7 @@ function ChatApp() {
   const messages = useChatStore((state) => state.messages);
   const theme = useChatStore((state) => state.theme);
   const setTheme = useChatStore((state) => state.setTheme);
+  const setShowLanding = useChatStore((state) => state.setShowLanding);
   const appMode = useChatStore((state) => state.appMode);
   const hasServerKey = useChatStore((state) => state.hasServerKey);
   const apiKey = useChatStore((state) => state.apiKey);
@@ -623,40 +639,57 @@ function ChatApp() {
           fixed md:relative top-0 left-0 h-full z-30 md:z-auto
           ${sidebarOpen ? "w-[260px] translate-x-0" : "w-0 md:w-0 -translate-x-full md:translate-x-0 border-r-0"}`}
       >
-        {/* App header */}
+        {/* App header — logo + name clickable, opens landing/about screen */}
         <div className="h-[52px] flex items-center gap-2.5 px-4 border-b border-separator min-w-[260px]">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-primary-hover flex items-center justify-center flex-shrink-0">
-            <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
-          <span className="text-[14px] font-semibold tracking-[-0.01em] flex-1 whitespace-nowrap">Agent Debate</span>
+          <Tooltip text={t.tooltip.openLanding} position="bottom" align="start">
+            <button
+              type="button"
+              onClick={() => setShowLanding(true)}
+              aria-label={t.tooltip.openLanding}
+              className="flex items-center gap-2.5 rounded-lg -ml-1 px-1 py-1 hover:bg-elevated transition-colors duration-150 flex-shrink-0"
+            >
+              <span className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-primary-hover flex items-center justify-center flex-shrink-0">
+                <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </span>
+              <span className="text-[14px] font-semibold tracking-[-0.01em] whitespace-nowrap">Agent Debate</span>
+            </button>
+          </Tooltip>
+          <div className="flex-1" />
 
-          <button
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-foreground hover:bg-elevated transition-colors duration-150"
-            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          <Tooltip
+            text={theme === "dark" ? t.tooltip.lightMode : t.tooltip.darkMode}
+            position="bottom"
           >
-            {theme === "dark" ? (
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-            ) : (
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-              </svg>
-            )}
-          </button>
+            <button
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              aria-label={theme === "dark" ? t.tooltip.lightMode : t.tooltip.darkMode}
+              className="w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-foreground hover:bg-elevated transition-colors duration-150"
+            >
+              {theme === "dark" ? (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+              )}
+            </button>
+          </Tooltip>
 
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-foreground hover:bg-elevated transition-colors duration-150"
-            title="Hide sidebar"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-            </svg>
-          </button>
+          <Tooltip text={t.tooltip.hideSidebar} align="end" position="bottom">
+            <button
+              onClick={() => setSidebarOpen(false)}
+              aria-label={t.tooltip.hideSidebar}
+              className="w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-foreground hover:bg-elevated transition-colors duration-150"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+              </svg>
+            </button>
+          </Tooltip>
         </div>
 
         {/* Agents list */}
@@ -670,8 +703,8 @@ function ChatApp() {
                 onClick={() => setHistoryOpen(!historyOpen)}
                 className="w-full flex items-center justify-between px-2 mb-1"
               >
-                <span className="text-[12px] font-medium text-muted uppercase tracking-[0.05em]">
-                  History
+                <span className="text-[13px] font-semibold text-foreground/70 uppercase tracking-[0.05em]">
+                  {t.sidebar.history}
                 </span>
                 <div className="flex items-center gap-1.5">
                   <span className="text-[10px] text-muted/60">{sortedSessions.length}</span>
@@ -690,7 +723,7 @@ function ChatApp() {
                           conversationEngine.reset();
                           setSidebarOpen(false);
                         }}
-                        className={`w-full text-left px-2 py-[6px] rounded-lg text-[13px] truncate transition-all duration-150 ${
+                        className={`w-full text-left px-2 py-[7px] rounded-lg text-[14px] truncate transition-all duration-150 ${
                           session.id === currentSessionId
                             ? "bg-elevated text-foreground"
                             : "text-foreground/70 hover:bg-elevated"
@@ -699,16 +732,20 @@ function ChatApp() {
                       >
                         {session.title}
                       </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteSession(session.id);
-                        }}
-                        className="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-md text-[11px] text-muted hover:text-red-400 opacity-0 group-hover:opacity-100 touch-visible transition-all duration-150"
-                        title="Delete"
-                      >
-                        ✕
-                      </button>
+                      <div className="absolute right-1 top-1/2 -translate-y-1/2">
+                        <Tooltip text={t.tooltip.deleteSession} align="end">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteSession(session.id);
+                            }}
+                            aria-label={t.tooltip.deleteSession}
+                            className="w-5 h-5 flex items-center justify-center rounded-md text-[11px] text-muted hover:text-red-400 opacity-0 group-hover:opacity-100 touch-visible transition-all duration-150"
+                          >
+                            ✕
+                          </button>
+                        </Tooltip>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -717,45 +754,77 @@ function ChatApp() {
           )}
         </div>
 
-        {/* Settings: Style + Font size — merged into one block */}
+        {/* Settings: Language + Style + Font size — merged into one block */}
         <div className="px-4 py-2.5 border-t border-separator min-w-[260px]">
-          <div className="flex items-center gap-1 mb-1.5">
-            <span className="text-[11px] text-muted uppercase tracking-[0.04em]">Style:</span>
+          {/* Language row */}
+          <div className="flex items-center justify-between gap-2 mb-3 pb-3 border-b border-separator/60">
+            <span className="text-[13px] text-foreground/70 uppercase tracking-[0.05em] font-medium">
+              {t.sidebar.language}
+            </span>
+            <LocaleSwitcher variant="inline" />
+          </div>
+          <div className="flex items-center gap-1 mb-2">
+            <span className="text-[13px] text-foreground/70 uppercase tracking-[0.05em] font-medium">{t.sidebar.style}</span>
           </div>
           <div className="flex rounded-lg bg-background p-0.5 gap-0.5">
-            {(["creative", "balanced", "precise"] as TemperaturePreset[]).map((preset) => (
-              <button
-                key={preset}
-                onClick={() => setTemperature(preset)}
-                className={`flex-1 text-[11px] font-medium py-1.5 rounded-md transition-all duration-150 capitalize ${
-                  temperature === preset
-                    ? "bg-primary text-white shadow-sm"
-                    : "text-muted hover:text-foreground"
-                }`}
-              >
-                {preset}
-              </button>
-            ))}
+            {(["creative", "balanced", "precise"] as TemperaturePreset[]).map((preset) => {
+              const desc =
+                preset === "creative"
+                  ? t.tooltip.creativeDesc
+                  : preset === "balanced"
+                    ? t.tooltip.balancedDesc
+                    : t.tooltip.preciseDesc;
+              const label =
+                preset === "creative"
+                  ? t.sidebar.creative
+                  : preset === "balanced"
+                    ? t.sidebar.balanced
+                    : t.sidebar.precise;
+              // Position-aware alignment so wide tooltip text doesn't clip
+              // past the narrow sidebar's right or left edge.
+              const tipAlign: "start" | "center" | "end" =
+                preset === "creative" ? "start" : preset === "precise" ? "end" : "center";
+              return (
+                <Tooltip key={preset} text={desc} align={tipAlign} className="flex-1">
+                  <button
+                    onClick={() => setTemperature(preset)}
+                    aria-label={`${label} — ${desc}`}
+                    className={`w-full text-[13px] font-medium py-2 rounded-md transition-all duration-150 ${
+                      temperature === preset
+                        ? "bg-primary text-white shadow-sm"
+                        : "text-muted hover:text-foreground"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                </Tooltip>
+              );
+            })}
           </div>
-          <div className="flex items-center gap-2.5 mt-2">
-            <span className="text-[12px] text-muted select-none">A</span>
-            <input
-              type="range"
-              min={12}
-              max={20}
-              step={1}
-              value={fontSize}
-              onChange={(e) => setFontSize(Number(e.target.value))}
-              className="flex-1 h-1 appearance-none bg-surface-hover rounded-full cursor-pointer accent-primary [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:shadow-sm"
-            />
-            <span className="text-[16px] text-muted select-none">A</span>
-          </div>
+          <Tooltip text={t.tooltip.fontSize} className="w-full mt-2">
+            <div className="flex items-center gap-2.5 w-full">
+              <span className="text-[12px] text-muted select-none">A</span>
+              <input
+                type="range"
+                min={12}
+                max={20}
+                step={1}
+                value={fontSize}
+                onChange={(e) => setFontSize(Number(e.target.value))}
+                aria-label={t.tooltip.fontSize}
+                className="flex-1 h-1 appearance-none bg-surface-hover rounded-full cursor-pointer accent-primary [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:shadow-sm"
+              />
+              <span className="text-[16px] text-muted select-none">A</span>
+            </div>
+          </Tooltip>
         </div>
 
-        {/* Bottom toolbar */}
-        <div className="px-3 py-2.5 border-t border-separator min-w-[260px]">
-          <div className="flex gap-1.5">
+        {/* Bottom toolbar — equal-cell grid, no overlaps */}
+        <div className="px-3 py-3 border-t border-separator min-w-[260px] flex flex-col gap-2">
+          {/* Primary row */}
+          <div className="flex gap-2">
             {messages.length > 0 && (
+              <Tooltip text={t.tooltip.exportMarkdown} position="bottom" className="flex-1">
               <button
                 onClick={() => {
                   const state = useChatStore.getState();
@@ -766,65 +835,73 @@ function ChatApp() {
                   const date = new Date().toISOString().split("T")[0];
                   downloadMarkdown(md, `debate-${date}.md`);
                 }}
-                className="flex-1 flex items-center justify-center gap-1.5 h-[30px] text-[13px] text-muted hover:text-foreground rounded-lg hover:bg-elevated transition-colors duration-150"
-                title="Export debate as Markdown"
+                aria-label={t.tooltip.exportMarkdown}
+                className="w-full flex items-center justify-center gap-2 h-[38px] text-[14px] text-foreground/80 hover:text-foreground rounded-md bg-elevated/60 hover:bg-elevated transition-colors duration-150"
               >
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                Export
+                {t.sidebar.exportLabel}
               </button>
+              </Tooltip>
             )}
             <button
               onClick={() => {
                 newDebate();
                 conversationEngine.reset();
               }}
-              className="flex-1 flex items-center justify-center gap-1.5 h-[30px] text-[13px] text-muted hover:text-foreground rounded-lg hover:bg-elevated transition-colors duration-150"
+              className="flex-1 flex items-center justify-center gap-2 h-[38px] text-[14px] font-medium text-foreground hover:text-foreground rounded-md bg-elevated hover:bg-surface-hover transition-colors duration-150"
             >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
               </svg>
-              New Debate
+              {t.sidebar.newDebate}
             </button>
           </div>
 
-          <div className="flex items-center justify-between mt-1.5">
+          {/* Secondary row — Key + GitHub, equal cells */}
+          <div className="flex gap-2">
             {apiKey ? (
-              <button
-                onClick={clearApiKey}
-                className="flex items-center gap-1 h-[26px] text-[11px] text-muted/60 hover:text-red-400 rounded-md hover:bg-elevated transition-colors duration-150 px-1.5"
-                title="Clear API key and return to welcome screen"
-              >
-                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                Disconnect
-              </button>
+              <Tooltip text={t.tooltip.disconnect} position="bottom" className="flex-1">
+                <button
+                  onClick={clearApiKey}
+                  aria-label={t.tooltip.disconnect}
+                  className="w-full flex items-center justify-center gap-2 h-[34px] text-[13px] text-foreground/70 hover:text-red-400 rounded-md hover:bg-elevated transition-colors duration-150"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  Disconnect
+                </button>
+              </Tooltip>
             ) : hasServerKey ? (
-              <button
-                onClick={() => setKeyPromptOpen(true)}
-                className="flex items-center gap-1 h-[26px] text-[11px] text-muted/60 hover:text-primary rounded-md hover:bg-elevated transition-colors duration-150 px-1.5"
-                title="Add your OpenRouter API key to unlock all models and avoid rate limits"
-              >
-                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                </svg>
-                API Key
-              </button>
+              <Tooltip text={t.tooltip.addKey} position="bottom" className="flex-1">
+                <button
+                  onClick={() => setKeyPromptOpen(true)}
+                  aria-label={t.tooltip.addKey}
+                  className="w-full flex items-center justify-center gap-2 h-[34px] text-[13px] text-primary hover:text-primary-light rounded-md border border-primary/45 hover:border-primary hover:bg-primary/10 transition-colors duration-150 font-medium whitespace-nowrap"
+                >
+                  <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                  </svg>
+                  {t.sidebar.apiKey}
+                </button>
+              </Tooltip>
             ) : null}
+            <Tooltip text={t.tooltip.viewGithub} position="bottom" align="end" className="flex-1">
             <a
               href="https://github.com/Lexus2016/Agent-Debate-Consensus"
               target="_blank"
               rel="noopener noreferrer"
-              className={`flex items-center gap-1 h-[26px] text-[11px] text-muted/60 hover:text-foreground rounded-md hover:bg-elevated transition-colors duration-150 px-1.5 ${apiKey || hasServerKey ? "" : "ml-auto"}`}
-              title="View source on GitHub"
+              aria-label={t.tooltip.viewGithub}
+              className="w-full flex items-center justify-center gap-2 h-[34px] text-[13px] text-foreground/55 hover:text-foreground rounded-md hover:bg-elevated transition-colors duration-150"
             >
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
               </svg>
               GitHub
             </a>
+            </Tooltip>
           </div>
         </div>
       </div>
@@ -834,15 +911,17 @@ function ChatApp() {
         {/* Sidebar open button when collapsed — fixed on mobile so it stays visible while scrolling */}
         {!sidebarOpen && (
           <div className="fixed md:absolute top-2.5 left-2.5 z-10">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="w-9 h-9 md:w-8 md:h-8 flex items-center justify-center rounded-xl md:rounded-lg bg-surface-light border border-separator text-muted hover:text-foreground hover:bg-elevated transition-colors duration-150 shadow-md md:shadow-sm"
-              title="Show sidebar"
-            >
-              <svg className="w-4.5 h-4.5 md:w-4 md:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
+            <Tooltip text={t.tooltip.showSidebar} align="start" position="bottom">
+              <button
+                onClick={() => setSidebarOpen(true)}
+                aria-label={t.tooltip.showSidebar}
+                className="w-9 h-9 md:w-8 md:h-8 flex items-center justify-center rounded-xl md:rounded-lg bg-surface-light border border-separator text-muted hover:text-foreground hover:bg-elevated transition-colors duration-150 shadow-md md:shadow-sm"
+              >
+                <svg className="w-4.5 h-4.5 md:w-4 md:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+            </Tooltip>
           </div>
         )}
         <MessageList onBoost={handleBoost} />

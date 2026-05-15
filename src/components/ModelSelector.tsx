@@ -2,11 +2,14 @@
 
 import { useState } from "react";
 import { useChatStore } from "@/store/chatStore";
+import { useT } from "@/lib/i18n";
 import { ModelDiscoveryModal } from "./ModelDiscoveryModal";
 import { ApiKeyPromptModal } from "./ApiKeyPromptModal";
+import { Tooltip } from "./Tooltip";
 import { availableModels as defaultModels } from "@/lib/models";
 
 export function ModelSelector() {
+  const t = useT();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [keyPromptOpen, setKeyPromptOpen] = useState(false);
   const [keyPromptModel, setKeyPromptModel] = useState<string | undefined>();
@@ -55,25 +58,30 @@ export function ModelSelector() {
 
   return (
     <div>
-      <div className="flex items-center justify-between px-2 mb-2">
-        <h3 className="text-[12px] font-medium text-muted uppercase tracking-[0.05em]">
-          Agents
-        </h3>
-        <span className={`text-[10px] font-medium ${isAtLimit ? "text-amber-400" : "text-muted/60"}`}>
-          {activeModels.length}/{maxActiveModels}
-        </span>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="w-6 h-6 flex items-center justify-center rounded-md text-muted hover:text-foreground hover:bg-elevated transition-colors duration-150 text-[16px] leading-none"
-          title="Discover more agents"
-        >
-          +
-        </button>
+      <div className="flex items-center justify-between px-2 mb-2 gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <h3 className="text-[13px] font-semibold text-foreground/85 uppercase tracking-[0.05em]">
+            {t.sidebar.agents}
+          </h3>
+          <span className={`text-[12px] font-medium ${isAtLimit ? "text-amber-400" : "text-muted"}`}>
+            {activeModels.length}/{maxActiveModels}
+          </span>
+        </div>
+        <Tooltip text={t.tooltip.browseCatalog} align="end" position="bottom">
+          <button
+            onClick={() => setIsModalOpen(true)}
+            aria-label={t.sidebar.browseTitle}
+            className="flex items-center gap-1 px-2.5 h-7 rounded-md text-[13px] font-medium text-foreground/70 hover:text-foreground hover:bg-elevated transition-colors duration-150 leading-none flex-shrink-0"
+          >
+            <span className="text-[15px] leading-none">+</span>
+            <span>{t.sidebar.browseModels}</span>
+          </button>
+        </Tooltip>
       </div>
 
       {activeModels.length === 0 && (
-        <p className="px-2 mb-2 text-[12px] text-primary font-medium leading-snug">
-          Click an agent to activate it
+        <p className="px-2 mb-3 text-[14px] text-primary font-medium leading-snug">
+          {t.sidebar.clickToActivate}
         </p>
       )}
 
@@ -106,7 +114,7 @@ export function ModelSelector() {
                   }
                   toggleModel(model.id);
                 }}
-                className={`w-full flex items-center gap-2.5 py-[7px] pr-2 rounded-lg text-left transition-all duration-150 ${
+                className={`w-full flex items-center gap-2.5 py-2 pr-2 rounded-lg text-left transition-all duration-150 ${
                   isActive ? "pl-7" : "pl-2"
                 } ${
                   isActive
@@ -121,17 +129,22 @@ export function ModelSelector() {
                   style={{ backgroundColor: isFailed ? "#ef4444" : model.color }}
                 />
                 <div className="flex-1 min-w-0">
-                  <div className={`text-[14px] font-normal truncate leading-tight flex items-center gap-1.5 ${
+                  <div className={`text-[15px] font-normal truncate leading-tight flex items-center gap-1.5 ${
                     isFailed ? "text-red-400/80" : "text-foreground/90"
                   }`}>
                     <span className="truncate">{model.name}</span>
+                    {isModerator && (
+                      <span className="text-[10px] px-1.5 py-[1px] rounded bg-amber-500/15 text-amber-400 font-semibold uppercase tracking-wide flex-shrink-0">
+                        mod
+                      </span>
+                    )}
                     {isPublicMode && !userHasKey && (
                       isFree ? (
-                        <span className="text-[9px] px-1 py-[0.5px] rounded bg-green-500/15 text-green-400 font-semibold uppercase tracking-wide flex-shrink-0">
+                        <span className="text-[10px] px-1.5 py-[1px] rounded bg-green-500/15 text-green-400 font-semibold uppercase tracking-wide flex-shrink-0">
                           free
                         </span>
                       ) : (
-                        <span className="text-[9px] px-1 py-[0.5px] rounded bg-amber-500/15 text-amber-400 font-semibold uppercase tracking-wide flex-shrink-0">
+                        <span className="text-[10px] px-1.5 py-[1px] rounded bg-amber-500/15 text-amber-400 font-semibold uppercase tracking-wide flex-shrink-0">
                           paid
                         </span>
                       )
@@ -159,57 +172,82 @@ export function ModelSelector() {
                   </div>
                 )}
                 {isPaidBlocked && !isActive && (
-                  <svg className="w-3.5 h-3.5 text-muted/40 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
+                  <Tooltip text={t.tooltip.paidModel} align="end">
+                    <span
+                      role="img"
+                      aria-label={t.tooltip.paidModel}
+                      className="inline-flex"
+                    >
+                      <svg className="w-3.5 h-3.5 text-muted/40 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    </span>
+                  </Tooltip>
                 )}
               </button>
 
-              {/* Moderator toggle — star on the LEFT, always visible for active models */}
+              {/* Moderator toggle — star on the LEFT, always visible for active models.
+                  Positioning lives on the outer wrapper so Tooltip's own `relative` stays intact. */}
               {isActive && !isFailed && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setModerator(isModerator ? null : model.id);
-                  }}
-                  className={`absolute left-1 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-md text-[10px] transition-all duration-150 ${
-                    isModerator
-                      ? "text-amber-400"
-                      : "text-muted/30 hover:text-amber-400"
-                  }`}
-                  title={isModerator ? "Remove as debate moderator (you will moderate)" : "Set as debate moderator"}
-                >
-                  &#9733;
-                </button>
+                <div className="absolute left-1 top-1/2 -translate-y-1/2">
+                  <Tooltip
+                    text={isModerator ? t.tooltip.moderatorUnset : t.tooltip.moderatorSet}
+                    align="start"
+                  >
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setModerator(isModerator ? null : model.id);
+                      }}
+                      aria-label={isModerator ? t.tooltip.moderatorUnset : t.tooltip.moderatorSet}
+                      aria-pressed={isModerator}
+                      className={`w-5 h-5 flex items-center justify-center rounded-md text-[10px] transition-all duration-150 ${
+                        isModerator
+                          ? "text-amber-400"
+                          : "text-muted/30 hover:text-amber-400"
+                      }`}
+                    >
+                      &#9733;
+                    </button>
+                  </Tooltip>
+                </div>
               )}
 
               {/* Retry button for failed models */}
               {isFailed && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    clearModelFailed(model.id);
-                  }}
-                  className="absolute right-7 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-md text-[11px] text-muted hover:text-foreground opacity-0 group-hover:opacity-100 touch-visible transition-all duration-150"
-                  title="Retry — clear error"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                </button>
+                <div className="absolute right-7 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 touch-visible transition-opacity duration-150">
+                  <Tooltip text={t.tooltip.retryModel} align="end">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        clearModelFailed(model.id);
+                      }}
+                      aria-label={t.tooltip.retryModel}
+                      className="w-5 h-5 flex items-center justify-center rounded-md text-[11px] text-muted hover:text-foreground transition-colors duration-150"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                    </button>
+                  </Tooltip>
+                </div>
               )}
 
               {!isDefault && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removeModel(model.id);
-                  }}
-                  className="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-md text-[11px] text-muted hover:text-foreground hover:bg-elevated opacity-0 group-hover:opacity-100 touch-visible transition-all duration-150"
-                  title="Remove"
-                >
-                  ✕
-                </button>
+                <div className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 touch-visible transition-opacity duration-150">
+                  <Tooltip text={t.tooltip.removeModel} align="end">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeModel(model.id);
+                      }}
+                      aria-label={t.tooltip.removeModel}
+                      className="w-5 h-5 flex items-center justify-center rounded-md text-[11px] text-muted hover:text-foreground hover:bg-elevated transition-colors duration-150"
+                    >
+                      ✕
+                    </button>
+                  </Tooltip>
+                </div>
               )}
               {showSeparator && (
                 <div className="h-px bg-separator mx-2 my-1.5" />

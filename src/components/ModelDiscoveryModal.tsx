@@ -5,6 +5,8 @@ import { createPortal } from "react-dom";
 import { useChatStore } from "@/store/chatStore";
 import { Model } from "@/types/chat";
 import { getNextUniqueColor } from "@/lib/models";
+import { useT } from "@/lib/i18n";
+import { Tooltip } from "./Tooltip";
 
 interface OpenRouterModel {
   id: string;
@@ -31,6 +33,7 @@ function getApiKeyHeader(): Record<string, string> {
 }
 
 export function ModelDiscoveryModal({ isOpen, onClose }: ModelDiscoveryModalProps) {
+  const t = useT();
   const [models, setModels] = useState<OpenRouterModel[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -114,21 +117,24 @@ export function ModelDiscoveryModal({ isOpen, onClose }: ModelDiscoveryModalProp
     <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-6 bg-black/50 backdrop-blur-sm">
       <div className="bg-surface border border-separator w-full max-w-[560px] max-h-[85vh] md:max-h-[72vh] rounded-t-2xl md:rounded-2xl shadow-2xl shadow-black/30 flex flex-col overflow-hidden animate-modal-in">
         <div className="flex items-center justify-between px-5 py-4 border-b border-separator">
-          <h2 className="text-[16px] font-semibold tracking-[-0.01em]">Discover Agents</h2>
-          <button
-            onClick={onClose}
-            className="w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-foreground hover:bg-elevated transition-colors duration-150"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+          <h2 className="text-[16px] font-semibold tracking-[-0.01em]">{t.modal.discover.title}</h2>
+          <Tooltip text={t.tooltip.closeModal} align="end">
+            <button
+              onClick={onClose}
+              aria-label={t.tooltip.closeModal}
+              className="w-7 h-7 flex items-center justify-center rounded-lg text-muted hover:text-foreground hover:bg-elevated transition-colors duration-150"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </Tooltip>
         </div>
 
         <div className="px-5 py-3 border-b border-separator space-y-2">
           <input
             type="text"
-            placeholder="Search by name or provider..."
+            placeholder={t.modal.discover.searchPlaceholder}
             className="w-full bg-surface-light rounded-lg border border-separator px-3.5 py-2 text-[14px] focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/20 placeholder:text-muted transition-all duration-150"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -153,7 +159,7 @@ export function ModelDiscoveryModal({ isOpen, onClose }: ModelDiscoveryModalProp
                 </svg>
               )}
             </div>
-            Free only
+            {t.modal.discover.freeOnly}
           </button>
         </div>
 
@@ -161,11 +167,11 @@ export function ModelDiscoveryModal({ isOpen, onClose }: ModelDiscoveryModalProp
           {loading ? (
             <div className="flex flex-col items-center justify-center py-16 text-muted gap-3">
               <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
-              <span className="text-[14px]">Loading agents...</span>
+              <span className="text-[14px]">{t.modal.discover.loading}</span>
             </div>
           ) : filteredModels.length === 0 ? (
             <div className="flex items-center justify-center py-16 text-[14px] text-muted">
-              No results for &ldquo;{search}&rdquo;
+              {t.modal.discover.empty(search)}
             </div>
           ) : (
             filteredModels.map((model) => {
@@ -199,7 +205,7 @@ export function ModelDiscoveryModal({ isOpen, onClose }: ModelDiscoveryModalProp
                     </div>
                     <div className="flex items-center gap-3 text-[11px] text-muted font-mono">
                       {free ? (
-                        <span className="text-green-400">Free</span>
+                        <span className="text-green-400">{t.modal.discover.free}</span>
                       ) : (
                         <>
                           <span>${promptPrice}/1M in</span>
@@ -219,7 +225,7 @@ export function ModelDiscoveryModal({ isOpen, onClose }: ModelDiscoveryModalProp
                         : "bg-primary/15 text-primary hover:bg-primary/25"
                     }`}
                   >
-                    {isAdded ? "Added" : "Add"}
+                    {isAdded ? t.modal.discover.added : t.modal.discover.add}
                   </button>
                 </div>
               );
@@ -229,7 +235,7 @@ export function ModelDiscoveryModal({ isOpen, onClose }: ModelDiscoveryModalProp
 
         <div className="px-5 py-2.5 border-t border-separator text-center">
           <p className="text-[11px] text-muted">
-            Powered by OpenRouter
+            {t.modal.discover.poweredBy}
           </p>
         </div>
       </div>
