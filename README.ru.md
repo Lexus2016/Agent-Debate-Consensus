@@ -4,9 +4,9 @@
 
 🇬🇧 [English](README.md) | 🇷🇺 [Русский](README.ru.md) | 🇺🇦 [Українська](README.uk.md)
 
-![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js) ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript) ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss) ![License](https://img.shields.io/badge/license-MIT-green) ![Version](https://img.shields.io/badge/version-2.4.2-blue)
+![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js) ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript) ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss) ![License](https://img.shields.io/badge/license-MIT-green) ![Version](https://img.shields.io/badge/version-2.5.1-blue)
 
-> **v2.4.2** — Производительность: React.memo и мемоизация markdown-компонентов устраняют торможение браузера в длинных дебатах. Исправлено вертикальное выравнивание текста в поле ввода.
+> **v2.5.1** — Издательская полировка: гармонизированная типографическая шкала приветственного экрана (без диких контрастов огромное-vs-крошечное), более мягкий стиль сообщений пользователя с тонким акцентом cinnabar вместо сплошной заливки, баннер темы и события смены модератора теперь реагируют на слайдер размера шрифта.
 
 ---
 

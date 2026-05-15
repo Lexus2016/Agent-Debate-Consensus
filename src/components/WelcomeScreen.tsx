@@ -107,7 +107,7 @@ export function WelcomeScreen() {
           className="md:col-span-7 stagger-up"
           style={{ animationDelay: "120ms" }}
         >
-          <h1 className="font-display text-[56px] sm:text-[72px] md:text-[96px] lg:text-[120px] leading-[0.9] font-light tracking-[-0.03em]">
+          <h1 className="font-display text-[48px] sm:text-[64px] md:text-[80px] lg:text-[96px] leading-[0.92] font-light tracking-[-0.028em]">
             {t.welcome.heroTop}
             <br />
             {t.welcome.heroMid}
@@ -125,11 +125,11 @@ export function WelcomeScreen() {
           className="md:col-span-5 md:pt-6 flex flex-col stagger-up"
           style={{ animationDelay: "240ms" }}
         >
-          <p className="pullquote text-[22px] md:text-[26px] text-foreground mb-6">
+          <p className="pullquote text-[21px] md:text-[24px] text-foreground mb-6">
             {t.welcome.heroPullquote}
           </p>
           <div className="rule mb-6" />
-          <p className="text-[16px] leading-relaxed text-foreground/75">
+          <p className="text-[17px] leading-[1.65] text-foreground/75">
             {t.welcome.heroBody}
             <span className="font-display italic text-foreground">
               {t.welcome.heroBodyTail}
@@ -150,13 +150,13 @@ export function WelcomeScreen() {
         <div className="grid md:grid-cols-3 gap-8 md:gap-12">
           {steps.map(({ n, h, b }) => (
             <div key={n} className="flex flex-col">
-              <div className="font-mono text-[12px] text-primary mb-3 tracking-[0.2em]">
+              <div className="font-mono text-[13px] text-primary mb-3 tracking-[0.2em]">
                 {n}
               </div>
-              <h3 className="font-display text-[26px] md:text-[30px] leading-[1.05] mb-3 tracking-[-0.015em]">
+              <h3 className="font-display text-[24px] md:text-[26px] leading-[1.1] mb-3 tracking-[-0.015em]">
                 {h}
               </h3>
-              <p className="text-[15px] leading-relaxed text-foreground/70">{b}</p>
+              <p className="text-[16px] leading-[1.6] text-foreground/70">{b}</p>
             </div>
           ))}
         </div>
@@ -171,7 +171,7 @@ export function WelcomeScreen() {
       >
         <div className="md:col-span-5">
           <div className="eyebrow mb-4">{t.welcome.stepOne}</div>
-          <h2 className="font-display text-[42px] md:text-[56px] lg:text-[64px] leading-[0.95] tracking-[-0.02em] mb-5">
+          <h2 className="font-display text-[34px] md:text-[42px] lg:text-[48px] leading-[1.0] tracking-[-0.02em] mb-5">
             {t.welcome.connectKey1}
             <br />
             <em
@@ -181,7 +181,7 @@ export function WelcomeScreen() {
               {t.welcome.connectKey2}
             </em>
           </h2>
-          <p className="text-[16px] leading-relaxed text-foreground/75 mb-5">
+          <p className="text-[17px] leading-[1.65] text-foreground/75 mb-5">
             <span className="font-display italic text-foreground">
               {t.welcome.openRouterName}
             </span>{" "}
@@ -191,7 +191,7 @@ export function WelcomeScreen() {
             href="https://openrouter.ai/keys"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-baseline gap-2 font-mono text-[12px] uppercase tracking-[0.18em] text-primary hover:underline underline-offset-4 decoration-1"
+            className="inline-flex items-baseline gap-2 font-mono text-[13px] uppercase tracking-[0.18em] text-primary hover:underline underline-offset-4 decoration-1"
           >
             {t.welcome.getKey}
             <span aria-hidden>→</span>
@@ -215,7 +215,7 @@ export function WelcomeScreen() {
             autoFocus
             autoComplete="off"
             spellCheck={false}
-            className="w-full bg-transparent border-0 border-b border-[var(--color-rule)] focus:border-primary px-0 py-3 text-[22px] md:text-[28px] font-mono outline-none placeholder:text-muted/40 transition-colors duration-200 text-foreground caret-primary"
+            className="w-full bg-transparent border-0 border-b border-[var(--color-rule)] focus:border-primary px-0 py-3 text-[19px] md:text-[22px] font-mono outline-none placeholder:text-muted/40 transition-colors duration-200 text-foreground caret-primary"
           />
           {error && (
             <p className="font-mono text-[13px] text-primary mt-3 flex items-baseline gap-2">
@@ -227,7 +227,7 @@ export function WelcomeScreen() {
           <button
             onClick={handleSubmit}
             disabled={!key.trim() || validating}
-            className="self-start mt-7 group inline-flex items-baseline gap-3 bg-primary px-7 py-4 text-background font-mono text-[13px] uppercase tracking-[0.2em] hover:bg-primary-hover active:scale-[0.99] transition-all duration-150 disabled:opacity-25 disabled:cursor-not-allowed"
+            className="self-start mt-7 group inline-flex items-baseline gap-3 bg-primary px-7 py-4 text-background font-mono text-[14px] uppercase tracking-[0.18em] hover:bg-primary-hover active:scale-[0.99] transition-all duration-150 disabled:opacity-25 disabled:cursor-not-allowed"
           >
             {validating ? (
               <>
@@ -254,7 +254,7 @@ export function WelcomeScreen() {
             >
               ※
             </span>
-            <p className="text-[13.5px] text-foreground/55 leading-relaxed italic">
+            <p className="text-[14.5px] text-foreground/60 leading-[1.6] italic">
               {t.welcome.privacy}
             </p>
           </div>
@@ -264,7 +264,7 @@ export function WelcomeScreen() {
       <div className="flex-1" />
 
       {/* Colophon */}
-      <footer className="flex flex-wrap items-center justify-between gap-4 pt-8 mt-4 border-t border-[var(--color-rule)] font-mono text-[11px] uppercase tracking-[0.15em] text-foreground/50">
+      <footer className="flex flex-wrap items-center justify-between gap-4 pt-8 mt-4 border-t border-[var(--color-rule)] font-mono text-[12px] uppercase tracking-[0.14em] text-foreground/55">
         <div>
           <span className="text-foreground/80">{t.welcome.footerName}</span>
           &nbsp;·&nbsp; {t.welcome.footerOpen}

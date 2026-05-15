@@ -125,8 +125,8 @@ body::before {
 /* Editorial eyebrow — small uppercase mono label */
 .eyebrow {
   font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.18em;
+  font-size: 12px;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--color-muted);
   font-weight: 500;
@@ -211,6 +211,20 @@ body::before {
 /* Buttons get a tighter shadow + crisp edge */
 button, [role="button"] {
   letter-spacing: 0;
+}
+
+/* ── Focus styles ─────────────────────────────────────────────
+   Replace browser-default blue outline with brand cinnabar.
+   Only on keyboard focus (:focus-visible) so mouse clicks don't leave rings. */
+*:focus { outline: none; }
+*:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+input:focus-visible,
+textarea:focus-visible {
+  outline-offset: 0;
 }
 
 /* ── Animations ───────────────────────────────────────────── */

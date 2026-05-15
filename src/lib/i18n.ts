@@ -338,8 +338,8 @@ const uk: Dict = {
   welcome: {
     masthead: "Agent Debate · вип. 1",
     mastheadAside: "Це дискусія, не чат",
-    heroTop: "До восьми AI",
-    heroMid: "в одній",
+    heroTop: "До восьми",
+    heroMid: "AI в одній",
     heroBottom: "кімнаті.",
     heroPullquote:
       "«Поставте запитання. Вони сперечаються між собою, шукають консенсус — наживо. Модерує хтось із них або ви.»",
@@ -508,8 +508,8 @@ const ru: Dict = {
   welcome: {
     masthead: "Agent Debate · вып. 1",
     mastheadAside: "Это обсуждение, не чат",
-    heroTop: "До восьми AI",
-    heroMid: "в одной",
+    heroTop: "До восьми",
+    heroMid: "AI в одной",
     heroBottom: "комнате.",
     heroPullquote:
       "«Задайте вопрос. Они спорят между собой, ищут консенсус — в реальном времени. Модерирует кто-то из них или вы.»",

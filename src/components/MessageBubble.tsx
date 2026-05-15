@@ -245,7 +245,10 @@ export const MessageBubble = React.memo(function MessageBubble({
     return (
       <div className="flex items-center justify-center my-5 animate-fade-in gap-3 px-4">
         <div className="flex-1 h-px bg-[var(--color-rule)] max-w-[160px]" />
-        <span className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-foreground/55 whitespace-nowrap text-center">
+        <span
+          className="font-mono uppercase tracking-[0.16em] text-foreground/55 whitespace-nowrap text-center"
+          style={{ fontSize: `${Math.max(10, fontSize - 4)}px` }}
+        >
           {message.content}
         </span>
         <div className="flex-1 h-px bg-[var(--color-rule)] max-w-[160px]" />
@@ -289,23 +292,23 @@ export const MessageBubble = React.memo(function MessageBubble({
             </Tooltip>
             <span className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-foreground/65 font-medium">You</span>
           </div>
-          <div className="bg-primary text-background rounded-md px-4 py-3 md:px-5 md:py-3.5">
+          <div className="border-r-[3px] border-primary bg-primary/[0.07] text-foreground rounded-sm pl-5 pr-4 py-3 md:py-3.5">
             {message.content && (
               <div className="whitespace-pre-wrap leading-[1.6]" style={{ fontSize: `${fontSize}px` }}>
-                {highlightMentions(message.content, uniqueModels, true)}
+                {highlightMentions(message.content, uniqueModels, false)}
               </div>
             )}
             {message.attachment && (
-              <div className={`${message.content ? "mt-2 pt-2 border-t border-white/20" : ""}`}>
+              <div className={`${message.content ? "mt-2 pt-2 border-t border-foreground/15" : ""}`}>
                 <button
                   onClick={(e) => { e.stopPropagation(); setFileExpanded(!fileExpanded); }}
-                  className="flex items-center gap-2 text-[13px] text-white/80 hover:text-white transition-colors w-full"
+                  className="flex items-center gap-2 text-[13px] text-foreground/75 hover:text-foreground transition-colors w-full"
                 >
                   <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                   <span className="truncate">{message.attachment.fileName}</span>
-                  <span className="text-[11px] text-white/50 flex-shrink-0">
+                  <span className="text-[11px] text-foreground/50 flex-shrink-0">
                     {(message.attachment.size / 1024).toFixed(1)} KB
                   </span>
                   <svg
@@ -316,7 +319,7 @@ export const MessageBubble = React.memo(function MessageBubble({
                   </svg>
                 </button>
                 {fileExpanded && (
-                  <pre className="mt-2 p-2 bg-black/20 rounded-lg text-[12px] leading-[1.5] overflow-x-auto max-h-[300px] overflow-y-auto whitespace-pre-wrap break-words">
+                  <pre className="mt-2 p-2 bg-elevated rounded-md text-[12px] leading-[1.5] overflow-x-auto max-h-[300px] overflow-y-auto whitespace-pre-wrap break-words">
                     {message.attachment.content.split("\n").length > FILE_PREVIEW_LINES
                       ? message.attachment.content.split("\n").slice(0, FILE_PREVIEW_LINES).join("\n") + `\n\n... (${message.attachment.content.split("\n").length - FILE_PREVIEW_LINES} more lines)`
                       : message.attachment.content}
