@@ -4,9 +4,9 @@
 
 🇬🇧 [English](README.md) | 🇷🇺 [Русский](README.ru.md) | 🇺🇦 [Українська](README.uk.md)
 
-![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js) ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript) ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss) ![License](https://img.shields.io/badge/license-MIT-green) ![Version](https://img.shields.io/badge/version-2.5.1-blue)
+![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js) ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript) ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss) ![License](https://img.shields.io/badge/license-MIT-green) ![Version](https://img.shields.io/badge/version-2.5.2-blue)
 
-> **v2.5.1** — Видавниче полірування: гармонізована типографічна шкала вітального екрана (без диких контрастів величезне-vs-крихітне), м'якший стиль повідомлень користувача з тонким аксентом cinnabar замість суцільної заливки, банер теми та події зміни модератора тепер реагують на слайдер розміру шрифту.
+> **v2.5.2** — Переписано всі тексти вітального екрана в EN/UA/RU так, щоб звучало по-людськи. Більше ніяких «мультиагентних платформ» / «єдиних шлюзів» / абстрактних переліків — конкретні приклади, прості слова і голос, яким говорять, а не пишуть.
 
 ---
 
