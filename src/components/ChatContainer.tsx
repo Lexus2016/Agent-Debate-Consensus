@@ -635,7 +635,7 @@ function ChatApp() {
 
       {/* Sidebar */}
       <div
-        className={`flex-shrink-0 vibrancy border-r border-separator flex flex-col transition-all duration-250 ease-in-out overflow-hidden
+        className={`flex-shrink-0 vibrancy border-r border-separator flex flex-col transition-[width,translate] duration-250 ease-in-out overflow-hidden
           fixed md:relative top-0 left-0 h-full z-30 md:z-auto
           ${sidebarOpen ? "w-[260px] translate-x-0" : "w-0 md:w-0 -translate-x-full md:translate-x-0 border-r-0"}`}
       >
@@ -707,7 +707,7 @@ function ChatApp() {
                   {t.sidebar.history}
                 </span>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] text-muted/60">{sortedSessions.length}</span>
+                  <span className="text-[10px] text-muted/60 tabular-nums">{sortedSessions.length}</span>
                   <svg className={`w-3 h-3 text-muted transition-transform duration-150 ${historyOpen ? "rotate-90" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                   </svg>
@@ -723,7 +723,7 @@ function ChatApp() {
                           conversationEngine.reset();
                           setSidebarOpen(false);
                         }}
-                        className={`w-full text-left px-2 py-[7px] rounded-lg text-[14px] truncate transition-all duration-150 ${
+                        className={`w-full text-left px-2 py-[7px] rounded-lg text-[14px] truncate transition-colors duration-150 ${
                           session.id === currentSessionId
                             ? "bg-elevated text-foreground"
                             : "text-foreground/70 hover:bg-elevated"
@@ -740,7 +740,7 @@ function ChatApp() {
                               deleteSession(session.id);
                             }}
                             aria-label={t.tooltip.deleteSession}
-                            className="w-5 h-5 flex items-center justify-center rounded-md text-[11px] text-muted hover:text-red-400 opacity-0 group-hover:opacity-100 touch-visible transition-all duration-150"
+                            className="w-5 h-5 flex items-center justify-center rounded-md text-[11px] text-muted hover:text-red-400 opacity-0 group-hover:opacity-100 touch-visible transition-[opacity,color] duration-150"
                           >
                             ✕
                           </button>
@@ -789,7 +789,7 @@ function ChatApp() {
                   <button
                     onClick={() => setTemperature(preset)}
                     aria-label={`${label} — ${desc}`}
-                    className={`w-full text-[13px] font-medium py-2 rounded-md transition-all duration-150 ${
+                    className={`w-full text-[13px] font-medium py-2 rounded-md transition-[color,background-color,box-shadow] duration-150 ${
                       temperature === preset
                         ? "bg-primary text-white shadow-sm"
                         : "text-muted hover:text-foreground"
@@ -915,7 +915,7 @@ function ChatApp() {
               <button
                 onClick={() => setSidebarOpen(true)}
                 aria-label={t.tooltip.showSidebar}
-                className="w-9 h-9 md:w-8 md:h-8 flex items-center justify-center rounded-xl md:rounded-lg bg-surface-light border border-separator text-muted hover:text-foreground hover:bg-elevated transition-colors duration-150 shadow-md md:shadow-sm"
+                className="tap-target w-9 h-9 md:w-8 md:h-8 flex items-center justify-center rounded-xl md:rounded-lg bg-surface-light border border-separator text-muted hover:text-foreground hover:bg-elevated transition-colors duration-150 shadow-md md:shadow-sm"
               >
                 <svg className="w-4.5 h-4.5 md:w-4 md:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />

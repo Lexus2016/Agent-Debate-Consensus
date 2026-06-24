@@ -208,6 +208,20 @@ body::before {
   background-clip: text;
 }
 
+/* Minimum 40×40 touch target — a transparent pseudo-element extends the
+   clickable area without changing the visible box. Apply ONLY to isolated
+   controls; an extended hit area must never overlap a neighbouring one. */
+.tap-target { position: relative; }
+.tap-target::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100%, 40px);
+  height: max(100%, 40px);
+  transform: translate(-50%, -50%);
+}
+
 /* Buttons get a tighter shadow + crisp edge */
 button, [role="button"] {
   letter-spacing: 0;

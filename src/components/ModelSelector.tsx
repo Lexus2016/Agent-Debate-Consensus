@@ -63,7 +63,7 @@ export function ModelSelector() {
           <h3 className="text-[13px] font-semibold text-foreground/85 uppercase tracking-[0.05em]">
             {t.sidebar.agents}
           </h3>
-          <span className={`text-[12px] font-medium ${isAtLimit ? "text-amber-400" : "text-muted"}`}>
+          <span className={`text-[12px] font-medium tabular-nums ${isAtLimit ? "text-amber-400" : "text-muted"}`}>
             {activeModels.length}/{maxActiveModels}
           </span>
         </div>
@@ -114,7 +114,7 @@ export function ModelSelector() {
                   }
                   toggleModel(model.id);
                 }}
-                className={`w-full flex items-center gap-2.5 py-2 pr-2 rounded-lg text-left transition-all duration-150 ${
+                className={`w-full flex items-center gap-2.5 py-2 pr-2 rounded-lg text-left transition-[padding,background-color] duration-150 ${
                   isActive ? "pl-7" : "pl-2"
                 } ${
                   isActive
@@ -123,7 +123,7 @@ export function ModelSelector() {
                 }`}
               >
                 <div
-                  className={`w-2 h-2 rounded-full flex-shrink-0 transition-all duration-150 ${
+                  className={`w-2 h-2 rounded-full flex-shrink-0 transition-opacity duration-150 ${
                     isActive ? "opacity-100" : "opacity-40"
                   }`}
                   style={{ backgroundColor: isFailed ? "#ef4444" : model.color }}
@@ -201,7 +201,7 @@ export function ModelSelector() {
                       }}
                       aria-label={isModerator ? t.tooltip.moderatorUnset : t.tooltip.moderatorSet}
                       aria-pressed={isModerator}
-                      className={`w-5 h-5 flex items-center justify-center rounded-md text-[10px] transition-all duration-150 ${
+                      className={`w-5 h-5 flex items-center justify-center rounded-md text-[10px] transition-colors duration-150 ${
                         isModerator
                           ? "text-amber-400"
                           : "text-muted/30 hover:text-amber-400"

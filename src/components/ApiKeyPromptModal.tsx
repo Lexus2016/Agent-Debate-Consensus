@@ -160,7 +160,7 @@ export function ApiKeyPromptModal({
               onKeyDown={handleKeyDown}
               placeholder="sk-or-v1-..."
               autoFocus
-              className="w-full bg-surface-light rounded-xl border border-separator px-4 py-3 text-[15px] focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/20 placeholder:text-muted/50 transition-all duration-150 font-mono"
+              className="w-full bg-surface-light rounded-xl border border-separator px-4 py-3 text-[15px] focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/20 placeholder:text-muted/50 transition-[border-color,box-shadow] duration-150 font-mono"
             />
             {error && <p className="text-[13px] text-red-400">{error}</p>}
           </div>
@@ -168,7 +168,7 @@ export function ApiKeyPromptModal({
           <button
             onClick={handleSubmit}
             disabled={!key.trim() || validating}
-            className="w-full h-10 rounded-xl bg-primary text-white text-[14px] font-medium transition-all duration-150 hover:bg-primary-hover active:scale-[0.98] disabled:opacity-30 disabled:cursor-not-allowed"
+            className="w-full h-10 rounded-xl bg-primary text-white text-[14px] font-medium transition-[background-color,scale] duration-150 hover:bg-primary-hover active:scale-[0.96] disabled:opacity-30 disabled:cursor-not-allowed"
           >
             {validating ? t.modal.apiKey.validating : t.modal.apiKey.connect}
           </button>

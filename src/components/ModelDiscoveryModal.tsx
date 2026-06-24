@@ -135,20 +135,20 @@ export function ModelDiscoveryModal({ isOpen, onClose }: ModelDiscoveryModalProp
           <input
             type="text"
             placeholder={t.modal.discover.searchPlaceholder}
-            className="w-full bg-surface-light rounded-lg border border-separator px-3.5 py-2 text-[14px] focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/20 placeholder:text-muted transition-all duration-150"
+            className="w-full bg-surface-light rounded-lg border border-separator px-3.5 py-2 text-[14px] focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/20 placeholder:text-muted transition-[border-color,box-shadow] duration-150"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             autoFocus={typeof window !== "undefined" && window.innerWidth >= 768}
           />
           <button
             onClick={() => setFreeOnly(!freeOnly)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium border transition-all duration-150 cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium border transition-[color,background-color,border-color,box-shadow] duration-150 cursor-pointer ${
               freeOnly
                 ? "bg-green-500/15 text-green-400 border-green-500/30 ring-1 ring-green-500/20"
                 : "text-muted border-separator hover:text-foreground hover:border-muted/40 hover:bg-surface-light"
             }`}
           >
-            <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center flex-shrink-0 transition-all duration-150 ${
+            <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center flex-shrink-0 transition-colors duration-150 ${
               freeOnly
                 ? "bg-green-500/25 border-green-500/50"
                 : "border-muted/40"

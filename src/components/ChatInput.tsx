@@ -280,7 +280,7 @@ export function ChatInput({ onSend, onStop, disabled, isGenerating }: Props) {
         )}
 
         <div
-          className={`flex items-center gap-2 bg-surface-light border-t-2 border-x-0 border-b-0 px-4 py-3 transition-all duration-200 ${
+          className={`flex items-center gap-2 bg-surface-light border-t-2 border-x-0 border-b-0 px-4 py-3 transition-colors duration-200 ${
             focused
               ? "border-primary"
               : "border-[var(--color-rule)]"
@@ -310,7 +310,7 @@ export function ChatInput({ onSend, onStop, disabled, isGenerating }: Props) {
                 onClick={() => fileInputRef.current?.click()}
                 disabled={disabled}
                 aria-label={t.tooltip.attachFile}
-                className="w-[30px] h-[30px] flex items-center justify-center rounded-full text-muted/40 hover:text-muted hover:bg-surface-hover transition-all duration-200 disabled:opacity-20 disabled:cursor-not-allowed"
+                className="w-[30px] h-[30px] flex items-center justify-center rounded-full text-muted/40 hover:text-muted hover:bg-surface-hover transition-colors duration-200 disabled:opacity-20 disabled:cursor-not-allowed"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
@@ -338,7 +338,7 @@ export function ChatInput({ onSend, onStop, disabled, isGenerating }: Props) {
                 }}
                 aria-label={webSearchEnabled ? t.tooltip.webSearchOn : t.tooltip.webSearchOff}
                 aria-pressed={webSearchEnabled}
-                className={`w-[30px] h-[30px] flex items-center justify-center rounded-full transition-all duration-200 ${
+                className={`w-[30px] h-[30px] flex items-center justify-center rounded-full transition-[color,background-color,box-shadow] duration-200 ${
                   webSearchEnabled
                     ? "bg-primary/15 text-primary ring-1 ring-primary/30"
                     : "text-muted/40 hover:text-muted hover:bg-surface-hover"
@@ -372,7 +372,7 @@ export function ChatInput({ onSend, onStop, disabled, isGenerating }: Props) {
                 onClick={handleSubmit}
                 disabled={(!input.trim() && !pendingFile) || disabled}
                 aria-label={t.tooltip.send}
-                className="w-[30px] h-[30px] flex items-center justify-center rounded-full bg-primary text-white transition-all duration-150 disabled:opacity-20 disabled:cursor-not-allowed hover:bg-primary-hover active:scale-95"
+                className="w-[30px] h-[30px] flex items-center justify-center rounded-full bg-primary text-white transition-[background-color,scale] duration-150 disabled:opacity-20 disabled:cursor-not-allowed hover:bg-primary-hover active:scale-[0.96]"
               >
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />

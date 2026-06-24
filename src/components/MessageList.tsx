@@ -69,7 +69,7 @@ export function MessageList({ onBoost }: Props) {
                 <div className="flex-1 rule" />
               </div>
 
-              <h2 className="font-display text-[48px] sm:text-[64px] md:text-[80px] leading-[0.94] tracking-[-0.025em] mb-6">
+              <h2 className="font-display text-[48px] sm:text-[64px] md:text-[80px] leading-[0.94] tracking-[-0.025em] mb-6 text-balance">
                 {t.empty.stateAH1}
                 <br />
                 <em
@@ -80,7 +80,7 @@ export function MessageList({ onBoost }: Props) {
                 </em>
               </h2>
 
-              <p className="text-[17px] md:text-[19px] text-foreground/70 leading-relaxed mb-9 max-w-[540px]">
+              <p className="text-[17px] md:text-[19px] text-foreground/70 leading-relaxed mb-9 max-w-[540px] text-pretty">
                 <span className="hidden md:inline">{t.empty.stateABody}</span>
                 <span className="md:hidden">{t.empty.stateABodyMobile}</span>
               </p>
@@ -176,7 +176,7 @@ export function MessageList({ onBoost }: Props) {
               </div>
 
               {/* Headline */}
-              <h2 className="font-display text-[48px] sm:text-[60px] md:text-[80px] leading-[0.94] tracking-[-0.025em] mb-5">
+              <h2 className="font-display text-[48px] sm:text-[60px] md:text-[80px] leading-[0.94] tracking-[-0.025em] mb-5 text-balance">
                 {t.empty.stateBH1}
                 <br />
                 <em
@@ -188,7 +188,7 @@ export function MessageList({ onBoost }: Props) {
                 {t.empty.stateBH1Tail}
               </h2>
 
-              <p className="text-[17px] md:text-[19px] text-foreground/65 leading-relaxed mb-7 max-w-[560px]">
+              <p className="text-[17px] md:text-[19px] text-foreground/65 leading-relaxed mb-7 max-w-[560px] text-pretty">
                 {t.empty.stateBBody}
               </p>
 
@@ -226,7 +226,7 @@ export function MessageList({ onBoost }: Props) {
                         {prompt}
                       </span>
                       <span
-                        className="font-mono text-[14px] text-foreground/25 group-hover:text-primary group-hover:translate-x-1 transition-all flex-shrink-0"
+                        className="font-mono text-[14px] text-foreground/25 group-hover:text-primary group-hover:translate-x-1 transition-[color,translate] flex-shrink-0"
                         aria-hidden
                       >
                         →
@@ -277,7 +277,7 @@ export function MessageList({ onBoost }: Props) {
             setIsAtBottom(true);
           }}
           aria-label={t.tooltip.scrollToBottom}
-          className="sticky bottom-4 left-1/2 -translate-x-1/2 float-right mr-4 w-9 h-9 flex items-center justify-center rounded-full bg-surface border border-separator shadow-lg shadow-black/20 text-muted hover:text-foreground hover:bg-surface-light transition-all duration-150 animate-fade-in"
+          className="tap-target sticky bottom-4 left-1/2 -translate-x-1/2 float-right mr-4 w-9 h-9 flex items-center justify-center rounded-full bg-surface border border-separator shadow-lg shadow-black/20 text-muted hover:text-foreground hover:bg-surface-light transition-colors duration-150 animate-fade-in"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />

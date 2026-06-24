@@ -107,7 +107,7 @@ export function WelcomeScreen() {
           className="md:col-span-7 stagger-up"
           style={{ animationDelay: "120ms" }}
         >
-          <h1 className="font-display text-[48px] sm:text-[64px] md:text-[80px] lg:text-[96px] leading-[0.92] font-light tracking-[-0.028em]">
+          <h1 className="font-display text-[48px] sm:text-[64px] md:text-[80px] lg:text-[96px] leading-[0.92] font-light tracking-[-0.028em] text-balance">
             {t.welcome.heroTop}
             <br />
             {t.welcome.heroMid}
@@ -129,7 +129,7 @@ export function WelcomeScreen() {
             {t.welcome.heroPullquote}
           </p>
           <div className="rule mb-6" />
-          <p className="text-[17px] leading-[1.65] text-foreground/75">
+          <p className="text-[17px] leading-[1.65] text-foreground/75 text-pretty">
             {t.welcome.heroBody}
             <span className="font-display italic text-foreground">
               {t.welcome.heroBodyTail}
@@ -153,10 +153,10 @@ export function WelcomeScreen() {
               <div className="font-mono text-[13px] text-primary mb-3 tracking-[0.2em]">
                 {n}
               </div>
-              <h3 className="font-display text-[24px] md:text-[26px] leading-[1.1] mb-3 tracking-[-0.015em]">
+              <h3 className="font-display text-[24px] md:text-[26px] leading-[1.1] mb-3 tracking-[-0.015em] text-balance">
                 {h}
               </h3>
-              <p className="text-[16px] leading-[1.6] text-foreground/70">{b}</p>
+              <p className="text-[16px] leading-[1.6] text-foreground/70 text-pretty">{b}</p>
             </div>
           ))}
         </div>
@@ -171,7 +171,7 @@ export function WelcomeScreen() {
       >
         <div className="md:col-span-5">
           <div className="eyebrow mb-4">{t.welcome.stepOne}</div>
-          <h2 className="font-display text-[34px] md:text-[42px] lg:text-[48px] leading-[1.0] tracking-[-0.02em] mb-5">
+          <h2 className="font-display text-[34px] md:text-[42px] lg:text-[48px] leading-[1.0] tracking-[-0.02em] mb-5 text-balance">
             {t.welcome.connectKey1}
             <br />
             <em
@@ -227,7 +227,7 @@ export function WelcomeScreen() {
           <button
             onClick={handleSubmit}
             disabled={!key.trim() || validating}
-            className="self-start mt-7 group inline-flex items-baseline gap-3 bg-primary px-7 py-4 text-background font-mono text-[14px] uppercase tracking-[0.18em] hover:bg-primary-hover active:scale-[0.99] transition-all duration-150 disabled:opacity-25 disabled:cursor-not-allowed"
+            className="self-start mt-7 group inline-flex items-baseline gap-3 bg-primary px-7 py-4 text-background font-mono text-[14px] uppercase tracking-[0.18em] hover:bg-primary-hover active:scale-[0.96] transition-[background-color,scale] duration-150 disabled:opacity-25 disabled:cursor-not-allowed"
           >
             {validating ? (
               <>

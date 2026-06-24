@@ -277,17 +277,16 @@ export const MessageBubble = React.memo(function MessageBubble({
               <button
                 onClick={handleCopy}
                 aria-label={t.tooltip.copyAsMarkdown}
-                className="opacity-0 group-hover/msg:opacity-100 touch-visible p-1 rounded-sm hover:bg-elevated transition-all duration-150"
+                className="opacity-0 group-hover/msg:opacity-100 touch-visible p-1 rounded-sm hover:bg-elevated transition-[opacity,background-color] duration-150"
               >
-                {copied ? (
-                  <svg className="w-3.5 h-3.5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <span className="relative block w-3.5 h-3.5">
+                  <svg className={`absolute inset-0 w-3.5 h-3.5 text-green-400 transition-[opacity,scale,filter] duration-200 ease-[cubic-bezier(0.2,0,0,1)] ${copied ? "opacity-100 scale-100 blur-0" : "opacity-0 scale-[0.25] blur-[4px]"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
-                ) : (
-                  <svg className="w-3.5 h-3.5 text-foreground/50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <svg className={`absolute inset-0 w-3.5 h-3.5 text-foreground/50 transition-[opacity,scale,filter] duration-200 ease-[cubic-bezier(0.2,0,0,1)] ${copied ? "opacity-0 scale-[0.25] blur-[4px]" : "opacity-100 scale-100 blur-0"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
-                )}
+                </span>
               </button>
             </Tooltip>
             <span className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-foreground/65 font-medium">You</span>
@@ -390,17 +389,16 @@ export const MessageBubble = React.memo(function MessageBubble({
               <button
                 onClick={handleCopy}
                 aria-label={t.tooltip.copyAsMarkdown}
-                className="opacity-0 group-hover/msg:opacity-100 touch-visible p-1 rounded-sm hover:bg-elevated transition-all duration-150"
+                className="opacity-0 group-hover/msg:opacity-100 touch-visible p-1 rounded-sm hover:bg-elevated transition-[opacity,background-color] duration-150"
               >
-                {copied ? (
-                  <svg className="w-3.5 h-3.5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <span className="relative block w-3.5 h-3.5">
+                  <svg className={`absolute inset-0 w-3.5 h-3.5 text-green-400 transition-[opacity,scale,filter] duration-200 ease-[cubic-bezier(0.2,0,0,1)] ${copied ? "opacity-100 scale-100 blur-0" : "opacity-0 scale-[0.25] blur-[4px]"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
-                ) : (
-                  <svg className="w-3.5 h-3.5 text-foreground/45" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  <svg className={`absolute inset-0 w-3.5 h-3.5 text-foreground/45 transition-[opacity,scale,filter] duration-200 ease-[cubic-bezier(0.2,0,0,1)] ${copied ? "opacity-0 scale-[0.25] blur-[4px]" : "opacity-100 scale-100 blur-0"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
-                )}
+                </span>
               </button>
             </Tooltip>
             {onBoost && (
@@ -408,7 +406,7 @@ export const MessageBubble = React.memo(function MessageBubble({
                 <button
                   onClick={() => onBoost(message.content, message.modelName ?? "Agent")}
                   aria-label={t.tooltip.boost}
-                  className="opacity-0 group-hover/msg:opacity-100 touch-visible p-1 rounded-sm hover:bg-elevated transition-all duration-150 text-foreground/45 hover:text-primary"
+                  className="opacity-0 group-hover/msg:opacity-100 touch-visible p-1 rounded-sm hover:bg-elevated transition-[opacity,background-color,color] duration-150 text-foreground/45 hover:text-primary"
                 >
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -458,7 +456,7 @@ export const MessageBubble = React.memo(function MessageBubble({
           >
             <div
               ref={contentRef}
-              className={`markdown-body leading-[1.65] text-foreground/90 transition-all duration-200 ${
+              className={`markdown-body leading-[1.65] text-foreground/90 transition-[max-height] duration-200 ${
                 isLongMessage && !expanded ? "overflow-hidden" : ""
               }`}
               style={{
