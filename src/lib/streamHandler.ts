@@ -1,7 +1,23 @@
+import { Citation } from "@/types/chat";
+
 interface StreamCallbacks {
   onToken: (content: string, reasoning?: string) => void;
+  onCitations?: (citations: Citation[]) => void;
   onComplete: () => void;
   onError: (error: Error) => void;
+}
+
+/**
+ * Error carrying the HTTP status from the /api/chat response so callers can
+ * distinguish permanent failures (401/402/403) from transient ones and fail fast.
+ */
+export class ApiStreamError extends Error {
+  status?: number;
+  constructor(message: string, status?: number) {
+    super(message);
+    this.name = "ApiStreamError";
+    this.status = status;
+  }
 }
 
 // Track active abort controllers for cancellation
@@ -38,7 +54,7 @@ export async function streamModelResponse(
   callbacks: StreamCallbacks,
   options?: { temperature?: number; webSearch?: boolean; maxTokens?: number }
 ): Promise<void> {
-  const { onToken, onComplete, onError } = callbacks;
+  const { onToken, onCitations, onComplete, onError } = callbacks;
 
   // Create abort controller for this request
   const controller = new AbortController();
@@ -67,7 +83,7 @@ export async function streamModelResponse(
       } catch {
         // Use default error message if body parsing fails
       }
-      throw new Error(errorMessage);
+      throw new ApiStreamError(errorMessage, response.status);
     }
 
     const reader = response.body?.getReader();
@@ -113,6 +129,13 @@ export async function streamModelResponse(
           }
           if (parsed.content || parsed.reasoning) {
             onToken(parsed.content || "", parsed.reasoning || "");
+          }
+          if (
+            onCitations &&
+            Array.isArray(parsed.citations) &&
+            parsed.citations.length > 0
+          ) {
+            onCitations(parsed.citations);
           }
         }
       }

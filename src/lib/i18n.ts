@@ -126,7 +126,9 @@ type Dict = {
     modChangedBetween: (prevName: string, newName: string) => string;
     modAutoReassigned: (failedName: string, newName: string) => string;
     modRemoved: (failedName: string) => string;
+    webSearchUnavailable: string;
   };
+  sourcesLabel: string;
   tooltip: {
     moderatorSet: string;
     moderatorUnset: string;
@@ -296,7 +298,10 @@ const en: Dict = {
     modChangedBetween: (p, n) => `Moderator changed: ${p} → ${n}`,
     modAutoReassigned: (f, n) => `Moderator auto-reassigned: ${f} (failed) → ${n}`,
     modRemoved: (f) => `Moderator removed: ${f} failed, no candidates available`,
+    webSearchUnavailable:
+      "Web search turned off — it needs your own OpenRouter key with credits (about $0.02 per search). Free models don't cover it. Add your key in settings to enable it.",
   },
+  sourcesLabel: "Sources",
   tooltip: {
     moderatorSet: "Make moderator",
     moderatorUnset: "Take moderator role yourself",
@@ -466,7 +471,10 @@ const uk: Dict = {
     modChangedBetween: (p, n) => `Модератора змінено: ${p} → ${n}`,
     modAutoReassigned: (f, n) => `Модератора авто-замінено: ${f} (помилка) → ${n}`,
     modRemoved: (f) => `Модератора знято: ${f} зазнав помилки, кандидатів немає`,
+    webSearchUnavailable:
+      "Пошук в інтернеті вимкнено — потрібен ваш власний ключ OpenRouter із кредитами (близько $0.02 за пошук). Безкоштовні моделі його не покривають. Додайте ключ у налаштуваннях, щоб увімкнути.",
   },
+  sourcesLabel: "Джерела",
   tooltip: {
     moderatorSet: "Зробити модератором",
     moderatorUnset: "Стати модератором самому",
@@ -636,7 +644,10 @@ const ru: Dict = {
     modChangedBetween: (p, n) => `Модератор изменён: ${p} → ${n}`,
     modAutoReassigned: (f, n) => `Модератор авто-заменён: ${f} (ошибка) → ${n}`,
     modRemoved: (f) => `Модератор снят: ${f} дал ошибку, кандидатов нет`,
+    webSearchUnavailable:
+      "Поиск в интернете выключен — нужен ваш собственный ключ OpenRouter с кредитами (около $0.02 за поиск). Бесплатные модели его не покрывают. Добавьте ключ в настройках, чтобы включить.",
   },
+  sourcesLabel: "Источники",
   tooltip: {
     moderatorSet: "Сделать модератором",
     moderatorUnset: "Стать модератором самому",

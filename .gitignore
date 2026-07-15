@@ -43,3 +43,7 @@ coverage/
 
 # Misc
 *.pem
+
+# Local tooling artifacts
+.claude/
+.playwright-mcp/

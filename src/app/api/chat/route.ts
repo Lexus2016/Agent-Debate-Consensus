@@ -1,6 +1,31 @@
 import { NextRequest } from "next/server";
 import OpenAI from "openai";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { Citation } from "@/types/chat";
+
+/**
+ * Extract web-search sources from an OpenRouter streaming delta.
+ * OpenRouter returns them as `annotations: [{ type: "url_citation", url_citation: {...} }]`.
+ * Validates the shape defensively — the OpenAI SDK types don't model this field.
+ */
+function extractCitations(delta: Record<string, unknown>): Citation[] {
+  const raw = delta.annotations;
+  if (!Array.isArray(raw)) return [];
+  const citations: Citation[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    if (!("url_citation" in item)) continue;
+    const uc = item.url_citation;
+    if (!uc || typeof uc !== "object") continue;
+    if (!("url" in uc) || typeof uc.url !== "string") continue;
+    const citation: Citation = { url: uc.url };
+    if ("title" in uc && typeof uc.title === "string") citation.title = uc.title;
+    if ("content" in uc && typeof uc.content === "string")
+      citation.content = uc.content;
+    citations.push(citation);
+  }
+  return citations;
+}
 
 // --- Server-side free model cache ---
 let freeModelCache: { ids: Set<string>; fetchedAt: number } | null = null;
@@ -216,12 +241,17 @@ export async function POST(req: NextRequest) {
               (delta?.reasoning_content as string) ||
               (delta?.reasoning as string) ||
               "";
+            const citations = delta ? extractCitations(delta) : [];
 
-            if (content || reasoning) {
+            if (content || reasoning || citations.length > 0) {
+              const payload: {
+                content: string;
+                reasoning: string;
+                citations?: Citation[];
+              } = { content, reasoning };
+              if (citations.length > 0) payload.citations = citations;
               controller.enqueue(
-                encoder.encode(
-                  `data: ${JSON.stringify({ content, reasoning })}\n\n`
-                )
+                encoder.encode(`data: ${JSON.stringify(payload)}\n\n`)
               );
             }
           }
@@ -251,8 +281,14 @@ export async function POST(req: NextRequest) {
     console.error("API Error:", error);
     const message =
       error instanceof Error ? error.message : "Failed to process request";
+    // Preserve OpenRouter's original status (401/402/403 for auth/billing/policy)
+    // so the client can fail fast instead of retrying a permanent error as 500.
+    const status =
+      error instanceof OpenAI.APIError && typeof error.status === "number"
+        ? error.status
+        : 500;
     return new Response(JSON.stringify({ error: message }), {
-      status: 500,
+      status,
       headers: { "Content-Type": "application/json" },
     });
   }

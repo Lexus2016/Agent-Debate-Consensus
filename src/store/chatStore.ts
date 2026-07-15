@@ -57,6 +57,21 @@ export const useChatStore = create<ChatState>()(
           ),
         })),
 
+      addMessageCitations: (id, citations) =>
+        set((state) => ({
+          messages: state.messages.map((m) => {
+            if (m.id !== id) return m;
+            const merged = [...(m.citations ?? [])];
+            const seen = new Set(merged.map((c) => c.url));
+            for (const c of citations) {
+              if (seen.has(c.url)) continue;
+              seen.add(c.url);
+              merged.push(c);
+            }
+            return { ...m, citations: merged };
+          }),
+        })),
+
       completeMessage: (id) =>
         set((state) => ({
           messages: state.messages.map((m) =>

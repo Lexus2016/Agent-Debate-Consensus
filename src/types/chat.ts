@@ -26,6 +26,16 @@ export interface FileAttachment {
 
 export type MessageType = "regular" | "summary";
 
+/**
+ * A web-search source returned by OpenRouter's web plugin (`url_citation`).
+ * Surfaced so the user can see which sources an agent actually consulted.
+ */
+export interface Citation {
+  url: string;
+  title?: string;
+  content?: string;
+}
+
 export interface Message {
   id: string;
   role: "user" | "assistant" | "system";
@@ -37,6 +47,7 @@ export interface Message {
   timestamp: number;
   isStreaming?: boolean;
   messageType?: MessageType;
+  citations?: Citation[];
 }
 
 export interface TypingState {
@@ -88,6 +99,8 @@ export interface ChatState {
 
   addMessage: (message: Omit<Message, "id" | "timestamp">) => string;
   updateMessage: (id: string, content: string, reasoning?: string) => void;
+  // Merge web-search sources into a message (accumulates across streaming deltas).
+  addMessageCitations: (id: string, citations: Citation[]) => void;
   completeMessage: (id: string) => void;
   removeMessage: (id: string) => void;
   setTyping: (modelId: string, modelName: string, isTyping: boolean) => void;

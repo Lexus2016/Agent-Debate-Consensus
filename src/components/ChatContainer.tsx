@@ -15,7 +15,7 @@ import {
   MAX_MODERATOR_ROUNDS,
   MAX_RETRIES,
 } from "@/lib/conversationEngine";
-import { streamModelResponse, stopAllStreams } from "@/lib/streamHandler";
+import { streamModelResponse, stopAllStreams, ApiStreamError } from "@/lib/streamHandler";
 import { MAX_COMPLETION_TOKENS } from "@/lib/tokenBudget";
 import { messagesToMarkdown, downloadMarkdown } from "@/lib/exportChat";
 import { MessageList } from "./MessageList";
@@ -26,7 +26,7 @@ import { ApiKeyPromptModal } from "./ApiKeyPromptModal";
 import { LocaleSwitcher } from "./LocaleSwitcher";
 import { Tooltip } from "./Tooltip";
 import { useT, detectLocale } from "@/lib/i18n";
-import { Message, TemperaturePreset, FileAttachment } from "@/types/chat";
+import { Message, TemperaturePreset, FileAttachment, Citation } from "@/types/chat";
 
 const TEMP_MAP: Record<TemperaturePreset, number> = {
   creative: 0.9,
@@ -144,6 +144,7 @@ function ChatApp() {
   const setContextSummary = useChatStore((state) => state.setContextSummary);
   const markModelFailed = useChatStore((state) => state.markModelFailed);
   const clearModelFailed = useChatStore((state) => state.clearModelFailed);
+  const addMessageCitations = useChatStore((state) => state.addMessageCitations);
   const temperature = useChatStore((state) => state.temperature);
   const setTemperature = useChatStore((state) => state.setTemperature);
   const sessions = useChatStore((state) => state.sessions);
@@ -384,16 +385,62 @@ function ChatApp() {
             if (reasoningToken) reasoning += reasoningToken;
             updateMessage(messageId, content, reasoning);
           },
+          onCitations: (citations: Citation[]) => {
+            addMessageCitations(messageId, citations);
+          },
           onComplete: () => resolve({ content, reasoning }),
           onError: (error) => resolve({ content: "", reasoning: "", error }),
         }, streamOptions);
       });
 
-      // ── Error: release slot for other models, schedule background retry ──
+      // ── Error handling ──
       if (result.error) {
         removeMessage(messageId);
+
+        // Fail fast on permanent errors — retrying auth/billing/policy failures
+        // (401/402/403) only masks the real cause behind generic "retrying…" noise.
+        const status =
+          result.error instanceof ApiStreamError ? result.error.status : undefined;
+        const isPermanent = status === 401 || status === 402 || status === 403;
+
+        // A 402/403 while web search is on is almost always the paid web plugin
+        // (free models don't cover it). Disable web search BEFORE releasing the
+        // slot, so the next queued model — which releaseSlot triggers synchronously
+        // — doesn't repeat the same paid failure.
+        const isWebSearchFailure =
+          isPermanent &&
+          (status === 402 || status === 403) &&
+          useChatStore.getState().webSearchEnabled;
+        if (isWebSearchFailure) {
+          useChatStore.getState().setWebSearch(false);
+        }
+
         conversationEngine.releaseSlot(modelId);
 
+        if (isWebSearchFailure) {
+          addMessage({
+            role: "system",
+            content: t.system.webSearchUnavailable,
+          });
+          // Don't sideline the model — re-queue it to answer without web search.
+          conversationEngine.clearRetry(modelId);
+          conversationEngine.queueResponse(modelId, 0, priority);
+          return;
+        }
+
+        if (isPermanent) {
+          // Auth/policy failure retrying can't fix (e.g. invalid key). Surface and stop.
+          addMessage({
+            role: "system",
+            content: `${model.name}: ${result.error.message}`,
+          });
+          markModelFailed(modelId, result.error.message);
+          conversationEngine.clearRetry(modelId);
+          checkSettled();
+          return;
+        }
+
+        // Transient error — schedule background retry.
         const scheduled = conversationEngine.scheduleRetry(modelId, priority);
         if (scheduled) {
           addMessage({

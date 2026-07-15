@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { Message, Model } from "@/types/chat";
+import { Message, Model, Citation } from "@/types/chat";
 import { messageToMarkdown } from "@/lib/exportChat";
 import { getThinkingStyleLabel } from "@/lib/conversationEngine";
 import { useRef, useState } from "react";
@@ -150,6 +150,18 @@ export const MessageBubble = React.memo(function MessageBubble({
     () => uniqueModels.find((m) => m.id === message.modelId),
     [uniqueModels, message.modelId]
   );
+
+  // De-duplicate web-search sources by URL — OpenRouter can repeat citations.
+  const dedupedCitations = useMemo<Citation[]>(() => {
+    const seen = new Set<string>();
+    const out: Citation[] = [];
+    for (const c of message.citations ?? []) {
+      if (seen.has(c.url)) continue;
+      seen.add(c.url);
+      out.push(c);
+    }
+    return out;
+  }, [message.citations]);
 
   // Stable reference — only changes when models change, not on every streaming token.
   // ReactMarkdown sees the same components object → avoids internal reconciliation overhead.
@@ -486,6 +498,30 @@ export const MessageBubble = React.memo(function MessageBubble({
               </div>
             )}
           </div>
+
+          {/* Web-search sources */}
+          {!isUser && dedupedCitations.length > 0 && (
+            <div className="mt-3 pl-4 md:pl-5">
+              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-foreground/50 mb-1.5">
+                {t.sourcesLabel} · {dedupedCitations.length}
+              </div>
+              <ol className="space-y-1 list-decimal list-inside marker:text-foreground/35">
+                {dedupedCitations.map((c, i) => (
+                  <li key={`${c.url}-${i}`} className="text-[13px] leading-snug">
+                    <a
+                      href={c.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline break-words"
+                      title={c.url}
+                    >
+                      {c.title || c.url}
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
         </div>
       </div>
     </div>

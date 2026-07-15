@@ -1,8 +1,22 @@
-import { Message, Model } from "@/types/chat";
+import { Message, Model, Citation } from "@/types/chat";
 
 interface ExportOptions {
   activeModels?: Model[];
   moderatorId?: string | null;
+}
+
+/** Format web-search sources as a de-duplicated Markdown list. */
+function citationsToMarkdown(citations?: Citation[]): string {
+  if (!citations || citations.length === 0) return "";
+  const seen = new Set<string>();
+  const lines: string[] = [];
+  for (const c of citations) {
+    if (seen.has(c.url)) continue;
+    seen.add(c.url);
+    lines.push(`- [${c.title || c.url}](${c.url})`);
+  }
+  if (lines.length === 0) return "";
+  return `\n**Sources:**\n${lines.join("\n")}\n`;
 }
 
 export function messagesToMarkdown(messages: Message[], options?: ExportOptions): string {
@@ -55,6 +69,7 @@ export function messagesToMarkdown(messages: Message[], options?: ExportOptions)
     if (msg.attachment) {
       md += `\n📎 **${msg.attachment.fileName}** (${(msg.attachment.size / 1024).toFixed(1)} KB)\n\n\`\`\`\n${msg.attachment.content}\n\`\`\`\n`;
     }
+    md += citationsToMarkdown(msg.citations);
     md += `\n---\n\n`;
   }
 
@@ -73,6 +88,7 @@ export function messageToMarkdown(message: Message): string {
   if (message.attachment) {
     md += `\n\n📎 **${message.attachment.fileName}** (${(message.attachment.size / 1024).toFixed(1)} KB)\n\n\`\`\`\n${message.attachment.content}\n\`\`\``;
   }
+  md += citationsToMarkdown(message.citations);
   return md;
 }
 
