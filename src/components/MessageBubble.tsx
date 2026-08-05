@@ -3,7 +3,6 @@
 import React, { useMemo } from "react";
 import { Message, Model, Citation } from "@/types/chat";
 import { messageToMarkdown } from "@/lib/exportChat";
-import { getThinkingStyleLabel } from "@/lib/conversationEngine";
 import { useRef, useState } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -378,7 +377,7 @@ export const MessageBubble = React.memo(function MessageBubble({
             </span>
             {isSummary && (
               <span className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-amber-400 font-semibold">
-                · summary ·
+                · {t.summaryBadge} ·
               </span>
             )}
             {!isSummary && message.modelId === moderatorId && (
@@ -389,10 +388,10 @@ export const MessageBubble = React.memo(function MessageBubble({
             {!isSummary && model?.thinkingStyle && (
               <Tooltip text={t.tooltip.thinkingStyle}>
                 <span
-                  aria-label={`${t.tooltip.thinkingStyle}: ${getThinkingStyleLabel(model.thinkingStyle)}`}
+                  aria-label={`${t.tooltip.thinkingStyle}: ${t.roles[model.thinkingStyle]}`}
                   className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-foreground/45 cursor-help"
                 >
-                  {getThinkingStyleLabel(model.thinkingStyle)}
+                  {t.roles[model.thinkingStyle]}
                 </span>
               </Tooltip>
             )}

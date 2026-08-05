@@ -28,9 +28,9 @@ const jetbrains = JetBrains_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://lryq.com"),
-  title: "Agent Debate — Multi-Agent AI Debate Platform",
+  title: "Agent Debate — several AI models discuss your question",
   description:
-    "Put 2–5 AI models in one room. Pose a question. Watch them argue in real time. You moderate, steer, and drive toward consensus.",
+    "Ask one question and up to eight AI models discuss it with each other, live. They read each other's answers, disagree, and one of them sums up at the end. You moderate, or hand the role to a model.",
   keywords: [
     "AI debate",
     "multi-agent AI",
@@ -44,9 +44,9 @@ export const metadata: Metadata = {
   ],
   robots: { index: true, follow: true },
   openGraph: {
-    title: "Agent Debate — Multi-Agent AI Debate Platform",
+    title: "Agent Debate — several AI models discuss your question",
     description:
-      "Put 2–5 AI models in one room. Pose a question. Watch them argue. You moderate.",
+      "Ask one question and up to eight AI models argue it out, live. You read the reasoning instead of a single verdict.",
     url: "https://lryq.com",
     siteName: "Agent Debate",
     type: "website",
@@ -55,9 +55,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary",
-    title: "Agent Debate — Multi-Agent AI Debate Platform",
+    title: "Agent Debate — several AI models discuss your question",
     description:
-      "Put 2–5 AI models in one room. Pose a question. Watch them argue. You moderate.",
+      "Ask one question and up to eight AI models argue it out, live. You read the reasoning instead of a single verdict.",
     images: ["/icon-512.png"],
   },
 };

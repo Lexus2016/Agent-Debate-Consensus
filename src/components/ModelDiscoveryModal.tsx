@@ -161,6 +161,9 @@ export function ModelDiscoveryModal({ isOpen, onClose }: ModelDiscoveryModalProp
             </div>
             {t.modal.discover.freeOnly}
           </button>
+          <p className="pt-1 text-[11.5px] leading-[1.5] text-muted">
+            {t.modal.discover.priceLegend}
+          </p>
         </div>
 
         <div className="flex-1 overflow-y-auto px-3 py-2 space-y-1">

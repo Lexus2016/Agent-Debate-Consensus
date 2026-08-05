@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Agent Debate",
     short_name: "Agent Debate",
     description:
-      "Pick 2–5 AI models, pose a question, and watch them argue in real time.",
+      "Pick up to eight AI models, ask one question, and watch them discuss it with each other in real time.",
     start_url: "/",
     display: "standalone",
     background_color: "#09090b",
