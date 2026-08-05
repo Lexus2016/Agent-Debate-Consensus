@@ -19,9 +19,9 @@ export function WelcomeScreen() {
   // (server key already configured or their own user key stored).
   const canReturn = hasServerKey || !!apiKey;
 
-  // The landing now uses its own internal scroll container (h-dvh + overflow-y-auto
-  // on the root), so initial scrollTop is 0 by mount. No body-level scroll-restoration
-  // pitfalls. We still reset on mount to be safe across remounts.
+  // The landing scrolls inside its own container (h-dvh + overflow-y-auto on the
+  // root), and browsers restore a container's scrollTop after a reload. Reset it
+  // so the page always opens at the masthead.
   useLayoutEffect(() => {
     if (typeof window === "undefined") return;
     const root = document.getElementById("welcome-root");
@@ -212,7 +212,6 @@ export function WelcomeScreen() {
             }}
             onKeyDown={handleKeyDown}
             placeholder={t.welcome.keyPlaceholder}
-            autoFocus
             autoComplete="off"
             spellCheck={false}
             className="w-full bg-transparent border-0 border-b border-[var(--color-rule)] focus:border-primary px-0 py-3 text-[19px] md:text-[22px] font-mono outline-none placeholder:text-muted/40 transition-colors duration-200 text-foreground caret-primary"

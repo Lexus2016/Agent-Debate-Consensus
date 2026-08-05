@@ -51,9 +51,11 @@ export function MessageList({ onBoost }: Props) {
     return () => el.removeEventListener("scroll", handleScroll);
   }, [checkIfAtBottom]);
 
-  // Auto-scroll only when user is at bottom
+  // Auto-scroll only when user is at bottom. Skip it while the debate is empty:
+  // the setup screen is taller than a short viewport, and scrolling to the end
+  // would open it on its last block instead of the headline.
   useEffect(() => {
-    if (isAtBottom) {
+    if (isAtBottom && messages.length > 0) {
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, typingModels, isAtBottom]);
